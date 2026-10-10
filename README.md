@@ -4,7 +4,8 @@ AI-assisted platform that connects activities and evidence to the SDGs
 (**Goal → Target → Indicator → Evidence → Impact → Validation → Accreditation**), with human validation.
 Methodology: **Diagnose → Align → Measure → Validate → Improve**.
 
-> **Status: Phase 1 — project foundation.** No authentication, dashboards or SDG content yet.
+> **Status: Phase 1 foundation + public site and dashboard _preview_.** No authentication, stored data or real SDG
+> content yet. The dashboard (`/dashboard`) is an interface preview, hidden in production by default (see ADR-002).
 
 ## Stack
 
@@ -60,7 +61,3 @@ architectural rules (dependency direction, no duplicated business logic, shared 
 - [API docs](docs/api/README.md) · [Privacy](docs/privacy/README.md) · [Deployment notes](infrastructure/deployment/README.md)
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Licence: placeholder, see [LICENSE](LICENSE).
-
-# impact-align_V.2.0
-
-# impact-align_V.2.0

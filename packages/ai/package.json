@@ -1,0 +1,16 @@
+{
+  "name": "@impactalign/ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI provider abstraction (interfaces only; implemented in a later phase)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  }
+}

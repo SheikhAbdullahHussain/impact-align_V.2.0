@@ -1,0 +1,44 @@
+# Local development data stores: MongoDB + Redis.
+# Usage (from repo root, after `cp .env.example .env`):  npm run dev:infra
+# Ports are bound to 127.0.0.1 only. Never reuse these credentials or settings in production.
+name: impactalign-dev
+
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}
+      MONGO_INITDB_DATABASE: impactalign
+    ports:
+      - '127.0.0.1:27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mongosh --quiet -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.adminCommand('ping').ok" | grep -q 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+    command: ['sh', '-c', 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongo-data:
+  redis-data:

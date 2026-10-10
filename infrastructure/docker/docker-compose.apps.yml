@@ -1,0 +1,44 @@
+# Optional: run the applications themselves in containers, on top of the dev data stores.
+#   docker compose --env-file .env -f infrastructure/docker/docker-compose.dev.yml \
+#                  -f infrastructure/docker/docker-compose.apps.yml up --build
+name: impactalign-dev
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: development
+      API_CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      API_SWAGGER_ENABLED: 'true'
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/impactalign?authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    ports:
+      - '127.0.0.1:4000:4000'
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.next
+      args: { APP: web }
+    environment:
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - '127.0.0.1:3000:3000'
+
+  admin:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.next
+      args: { APP: admin }
+    environment:
+      NEXT_PUBLIC_SITE_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      PORT: '3001'
+    ports:
+      - '127.0.0.1:3001:3001'

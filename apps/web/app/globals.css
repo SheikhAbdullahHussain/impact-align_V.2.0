@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+/* Tailwind does not scan node_modules, so point it at the shared UI package sources. */
+@source '../../../packages/ui/src';
+
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+
+  /* Brand tokens (ink navy / evidence teal / recognition gold) — proposed values, see ADR-001. */
+  --color-navy-50: #eef3fa;
+  --color-navy-100: #d9e3f2;
+  --color-navy-200: #b5c8e6;
+  --color-navy-300: #8aa7d4;
+  --color-navy-600: #2f4f83;
+  --color-navy-700: #243d66;
+  --color-navy-800: #1b2f50;
+  --color-navy-900: #0f2040;
+  --color-navy-950: #08142b;
+  --color-gold-50: #fbf6e4;
+  --color-gold-400: #e0b94a;
+  --color-gold-500: #c9a227;
+}
+
+html {
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-navy-950);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
