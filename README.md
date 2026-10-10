@@ -60,4 +60,7 @@ architectural rules (dependency direction, no duplicated business logic, shared 
 - [API docs](docs/api/README.md) · [Privacy](docs/privacy/README.md) · [Deployment notes](infrastructure/deployment/README.md)
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Licence: placeholder, see [LICENSE](LICENSE).
+
+# impact-align_V.2.0
+
 # impact-align_V.2.0
