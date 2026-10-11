@@ -2,6 +2,7 @@
   "name": "@impactalign/web",
   "version": "0.1.0",
   "private": true,
+  "prepare": "husky || true",
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
