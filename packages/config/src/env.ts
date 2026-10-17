@@ -29,6 +29,17 @@ export const apiEnvSchema = z
     API_SWAGGER_ENABLED: booleanString.default(false),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1000).default(60_000),
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
+    /** Public web origin used to build links in emails (verify email, reset password). */
+    APP_WEB_URL: z.url().default('http://localhost:3000'),
+    /** 'console' prints emails (incl. links) to the log — development only. 'disabled' sends nothing. */
+    EMAIL_TRANSPORT: z.enum(['console', 'disabled']).default('console'),
+    SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(720),
+    SESSION_ABSOLUTE_HOURS: z.coerce.number().int().min(1).max(720).default(168),
+    COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
+    AUTH_MAX_FAILED_ATTEMPTS: z.coerce.number().int().min(3).max(20).default(5),
+    AUTH_LOCKOUT_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
+    /** Per-IP limit for credential endpoints (login, register, forgot/reset password). */
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
     HEALTH_CHECK_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(2_000),
     MONGODB_URI: z
       .string()
@@ -56,6 +67,12 @@ export const apiEnvSchema = z
     }
     if (env.API_CORS_ORIGINS.some((origin) => !origin.startsWith('https://'))) {
       addIssue('API_CORS_ORIGINS', 'must use https:// origins in production');
+    }
+    if (env.EMAIL_TRANSPORT === 'console') {
+      addIssue('EMAIL_TRANSPORT', "'console' would log secret links; use a real email transport");
+    }
+    if (!env.APP_WEB_URL.startsWith('https://')) {
+      addIssue('APP_WEB_URL', 'must use https:// in production');
     }
     if (env.API_SWAGGER_ENABLED) {
       addIssue('API_SWAGGER_ENABLED', 'API docs UI must be disabled in production');

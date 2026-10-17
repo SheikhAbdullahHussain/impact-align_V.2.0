@@ -35,7 +35,7 @@ export function SectionPage({ slug }: { readonly slug: string }) {
           role="note"
           className="mt-10 max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
         >
-          Placeholder: this section is under development and contains no final content yet.
+          Note: This section is under development.
         </p>
       </Container>
       {slug !== 'join-impactalign' && <CtaBanner />}

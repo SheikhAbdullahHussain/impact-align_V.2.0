@@ -52,8 +52,8 @@ export function SiteFooter() {
       </Container>
       <Container className="border-t border-white/10 py-5 text-xs text-navy-200">
         <p>
-          © {new Date().getFullYear()} {siteConfig.name}. All rights reserved. Site content is
-          placeholder text while the platform is under development.
+          © {new Date().getFullYear()} {siteConfig.name}. All rights reserved. site is under
+          development.
         </p>
       </Container>
     </footer>

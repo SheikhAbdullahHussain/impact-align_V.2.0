@@ -42,12 +42,18 @@ describe('parseApiEnv', () => {
       API_CORS_ORIGINS: 'https://app.example.org',
       MONGODB_URI: 'mongodb://u:p@db.internal/db',
       REDIS_URL: 'rediss://:p@cache.internal:6379',
+      APP_WEB_URL: 'https://app.example.org',
+      EMAIL_TRANSPORT: 'disabled',
     };
     expect(parseApiEnv(secure).NODE_ENV).toBe('production');
     expect(() =>
       parseApiEnv({ ...secure, MONGODB_URI: 'mongodb://u:change-me@db.internal/db' }),
     ).toThrow(/placeholder/);
     expect(() => parseApiEnv({ ...secure, API_SWAGGER_ENABLED: 'true' })).toThrow(/disabled/);
+    expect(() => parseApiEnv({ ...secure, EMAIL_TRANSPORT: 'console' })).toThrow(/EMAIL_TRANSPORT/);
+    expect(() => parseApiEnv({ ...secure, APP_WEB_URL: 'http://app.example.org' })).toThrow(
+      /APP_WEB_URL/,
+    );
   });
 });
 

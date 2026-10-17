@@ -2,7 +2,7 @@
   "name": "@impactalign/auth",
   "version": "0.1.0",
   "private": true,
-  "description": "Authentication and authorization (placeholder; implemented in a later phase)",
+  "description": "Authentication primitives (password hashing, tokens) and authorization policy (roles, permissions)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -12,5 +12,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@impactalign/types": "*"
   }
 }

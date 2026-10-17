@@ -16,7 +16,7 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
         role="note"
         className="mt-8 max-w-2xl rounded-md border border-gold-500 bg-gold-400/10 p-4 text-sm text-navy-900"
       >
-        Placeholder: this section is under development and contains no final content yet.
+        Note: This section is under development.
       </p>
       <Button asChild variant="outline" className="mt-8">
         <Link href="/">Back to home</Link>

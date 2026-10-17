@@ -30,7 +30,7 @@ export function TopicPage({ section, topic }: TopicPageProps) {
           role="note"
           className="max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
         >
-          Placeholder: the content for this page is being prepared.
+          Note: This page is under development.
         </p>
         {siblings.length > 0 && (
           <nav aria-label={`More in ${section.title}`} className="mt-10">

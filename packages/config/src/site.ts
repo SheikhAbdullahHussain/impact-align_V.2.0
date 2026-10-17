@@ -21,6 +21,7 @@ export const publicNav: readonly NavItem[] = [
   { label: 'PLATFORM', href: '/platform' },
   { label: 'RESOURCES', href: '/resources' },
   { label: 'COMMUNITY', href: '/community' },
+  { label: 'ACCREDITATION', href: '/accreditation' },
 ];
 
 export const loginNav: NavItem = { label: 'LOGIN', href: '/login' };
