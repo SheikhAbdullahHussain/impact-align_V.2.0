@@ -22,6 +22,7 @@ describe('SiteHeader', () => {
       'PLATFORM',
       'RESOURCES',
       'COMMUNITY',
+      'ACCREDITATION',
       'LOGIN',
       'JOIN IMPACTALIGN',
     ]);

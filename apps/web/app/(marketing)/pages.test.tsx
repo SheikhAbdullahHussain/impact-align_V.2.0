@@ -57,7 +57,7 @@ describe('Section pages', () => {
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
       const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' });
       expect(within(crumbs).getByRole('link', { name: 'Home' }).getAttribute('href')).toBe('/');
-      expect(screen.getByRole('note').textContent).toMatch(/placeholder/i);
+      expect(screen.getByRole('note').textContent).toMatch(/under development/i);
     },
   );
 
