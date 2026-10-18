@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
-import type { ApiErrorBody } from '@impactalign/types';
+import type { ApiErrorBody, ApiErrorDetail } from '@impactalign/types';
 import { HttpError } from './http-error';
 
 function requestIdOf(req: { id?: unknown }): string {
@@ -12,8 +12,11 @@ function send(
   status: number,
   code: string,
   message: string,
+  details?: ApiErrorDetail[],
 ): void {
-  const body: ApiErrorBody = { error: { code, message, requestId: requestIdOf(req) } };
+  const body: ApiErrorBody = {
+    error: { code, message, requestId: requestIdOf(req), ...(details ? { details } : {}) },
+  };
   res.status(status).json(body);
 }
 
@@ -29,7 +32,7 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, _next)
   if (res.headersSent) return;
 
   if (err instanceof HttpError) {
-    send(res, req, err.status, err.code, err.message);
+    send(res, req, err.status, err.code, err.message, err.details);
     return;
   }
 

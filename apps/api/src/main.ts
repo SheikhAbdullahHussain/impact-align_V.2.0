@@ -1,10 +1,13 @@
 import { disconnectMongo, pingMongo } from '@impactalign/database';
 import { createApp } from './app';
+import { ConsoleEmailSender, NoopEmailSender } from './auth/email';
 import { createLogger } from './common/logger';
 import { loadEnv } from './config/env';
+import { createMongoRepositories } from './data/mongo-repositories';
 import { HealthService } from './health/health.service';
 import { connectMongoWithRetry } from './infrastructure/mongo';
 import { createRedisClient, pingRedis } from './infrastructure/redis';
+import { createServices } from './services';
 
 const SERVICE_VERSION = process.env['npm_package_version'] ?? '0.1.0';
 
@@ -25,7 +28,15 @@ function main(): void {
     },
   );
 
-  const app = createApp({ env, logger, healthService });
+  const services = createServices({
+    env,
+    logger,
+    repos: createMongoRepositories(),
+    email:
+      env.EMAIL_TRANSPORT === 'console' ? new ConsoleEmailSender(logger) : new NoopEmailSender(),
+  });
+
+  const app = createApp({ env, logger, healthService, services });
   const server = app.listen(env.API_PORT, env.API_HOST, () => {
     logger.info({ port: env.API_PORT, env: env.NODE_ENV }, 'API listening');
   });

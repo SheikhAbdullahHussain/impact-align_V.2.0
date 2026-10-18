@@ -48,13 +48,15 @@ export function buildAuthTestContext(overrides: Partial<AuthServiceOptions> = {}
   const repos = createMemoryRepositories();
   const email = new RecordingEmailSender();
   const logger = createLogger({ NODE_ENV: 'test', LOG_LEVEL: 'silent' });
-  const clock = { now: new Date('2026-01-01T00:00:00Z') };
+  // Start at the real current time so cookie jars (which use the real clock) keep the cookies.
+  const clock = { now: new Date() };
   const hasher = createScryptHasher({ log2N: 4 });
+  const audit = new AuditService(repos.audit, logger);
   const auth = new AuthService({
     repos,
     hasher,
     email,
-    audit: new AuditService(repos.audit, logger),
+    audit,
     clock: () => clock.now,
     options: { ...defaultOptions, ...overrides },
   });
@@ -72,5 +74,5 @@ export function buildAuthTestContext(overrides: Partial<AuthServiceOptions> = {}
     await auth.verifyEmail(email.tokenFor('verify', address), ctx);
     return auth.login({ email: address, password }, ctx);
   }
-  return { auth, repos, email, hasher, clock, advance, ctx, signUp };
+  return { auth, audit, repos, email, hasher, clock, advance, ctx, signUp };
 }
