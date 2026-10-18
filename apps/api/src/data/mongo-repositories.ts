@@ -1,9 +1,11 @@
 import { Types, trusted } from 'mongoose';
-import type { PlatformRole } from '@impactalign/types';
+import type { OrganizationRole, PlatformRole } from '@impactalign/types';
 import {
   AuditLog,
   EmailVerification,
   LoginAttempt,
+  Organization,
+  OrganizationMember,
   PasswordResetToken,
   Session,
   User,
@@ -11,7 +13,9 @@ import {
 import {
   DuplicateEmailError,
   type OneTimeTokenKind,
+  type MemberRecord,
   type OneTimeTokenRecord,
+  type OrganizationRecord,
   type Repositories,
   type SessionRecord,
   type UserRecord,
@@ -45,6 +49,17 @@ interface LeanSession {
   ipAddress?: string | null;
   userAgent?: string | null;
 }
+interface LeanOrganization {
+  _id: Types.ObjectId;
+  name: string;
+  slug: string;
+  createdAt: Date;
+}
+interface LeanMember {
+  organizationId: Types.ObjectId;
+  userId: Types.ObjectId;
+  role: string;
+}
 interface LeanToken {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -75,6 +90,13 @@ const toSession = (d: LeanSession): SessionRecord => ({
   revokedAt: d.revokedAt ?? null,
   ipAddress: d.ipAddress ?? undefined,
   userAgent: d.userAgent ?? undefined,
+});
+
+const toOrganization = (d: LeanOrganization): OrganizationRecord => ({
+  id: d._id.toHexString(),
+  name: d.name,
+  slug: d.slug,
+  createdAt: d.createdAt,
 });
 
 const tokenModel = (kind: OneTimeTokenKind) =>
@@ -223,6 +245,72 @@ export function createMongoRepositories(): Repositories {
           ipAddress: entry.ipAddress,
           metadata: entry.metadata,
         });
+      },
+    },
+
+    organizations: {
+      async create(data) {
+        const doc = await Organization.create({
+          name: data.name,
+          slug: data.slug,
+          createdById: new Types.ObjectId(data.createdById),
+        });
+        return toOrganization(doc.toObject() as unknown as LeanOrganization);
+      },
+      async rename(id, name) {
+        if (isId(id)) await Organization.updateOne({ _id: id }, { $set: { name } });
+      },
+      async remove(id) {
+        if (!isId(id)) return;
+        await OrganizationMember.deleteMany({ organizationId: id });
+        await Organization.deleteOne({ _id: id });
+      },
+      async addMember(organizationId, userId, role) {
+        await OrganizationMember.create({
+          organizationId: new Types.ObjectId(organizationId),
+          userId: new Types.ObjectId(userId),
+          role,
+        });
+      },
+      async findById(id) {
+        if (!isId(id)) return null;
+        const doc = await Organization.findOne({
+          _id: id,
+          deletedAt: null,
+        }).lean<LeanOrganization>();
+        return doc ? toOrganization(doc) : null;
+      },
+      async findMembership(organizationId, userId) {
+        if (!isId(organizationId) || !isId(userId)) return null;
+        const doc = await OrganizationMember.findOne({ organizationId, userId }).lean<LeanMember>();
+        return doc ? { organizationId, userId, role: doc.role as OrganizationRole } : null;
+      },
+      async listForUser(userId) {
+        if (!isId(userId)) return [];
+        const members = await OrganizationMember.find({ userId }).lean<LeanMember[]>();
+        if (members.length === 0) return [];
+        const orgs = await Organization.find({
+          _id: trusted({ $in: members.map((m) => m.organizationId) }),
+          deletedAt: null,
+        }).lean<LeanOrganization[]>();
+        return members.flatMap((m) => {
+          const org = orgs.find((o) => o._id.equals(m.organizationId));
+          return org
+            ? [{ organization: toOrganization(org), role: m.role as OrganizationRole }]
+            : [];
+        });
+      },
+      async listMembers(organizationId): Promise<MemberRecord[]> {
+        if (!isId(organizationId)) return [];
+        const members = await OrganizationMember.find({ organizationId }).lean<LeanMember[]>();
+        const users = await User.find({ _id: trusted({ $in: members.map((m) => m.userId) }) })
+          .select('displayName')
+          .lean<{ _id: Types.ObjectId; displayName: string }[]>();
+        return members.map((m) => ({
+          userId: m.userId.toHexString(),
+          displayName: users.find((u) => u._id.equals(m.userId))?.displayName ?? 'Unknown',
+          role: m.role as OrganizationRole,
+        }));
       },
     },
   };

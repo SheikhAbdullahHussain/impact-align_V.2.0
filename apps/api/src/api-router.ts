@@ -3,6 +3,8 @@ import type { ApiEnv } from '@impactalign/config';
 import { createAuthRouter } from './auth/auth.router';
 import { authenticate, csrfGuard, originGuard, requireJson } from './auth/middleware';
 import { createRateLimiter } from './common/rate-limit';
+import { createOrganizationsRouter } from './organizations/organizations.router';
+import { createUsersRouter } from './users/users.router';
 import type { Services } from './services';
 
 /** Everything under /api/v1. Order matters: origin → JSON → session → CSRF → routes. */
@@ -20,7 +22,8 @@ export function createApiRouter(env: ApiEnv, services: Services): Router {
     '/auth',
     createAuthRouter({ auth: services.auth, cookie: services.cookie, limiter: authLimiter }),
   );
-  // users and organizations routers are added in the next step.
+  router.use('/users', createUsersRouter(services.users));
+  router.use('/organizations', createOrganizationsRouter(services.organizations));
 
   return router;
 }

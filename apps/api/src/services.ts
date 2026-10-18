@@ -6,11 +6,15 @@ import { cookieSettings, type CookieSettings } from './auth/cookies';
 import type { EmailSender } from './auth/email';
 import type { AppLogger } from './common/logger';
 import type { Repositories } from './data/repositories';
+import { OrganizationsService } from './organizations/organizations.service';
+import { UsersService } from './users/users.service';
 
 export interface Services {
   auth: AuthService;
   audit: AuditService;
   cookie: CookieSettings;
+  users: UsersService;
+  organizations: OrganizationsService;
 }
 
 export function authOptionsFromEnv(env: ApiEnv): AuthServiceOptions {
@@ -45,5 +49,11 @@ export function createServices(deps: ServiceDeps): Services {
     clock: deps.clock ?? (() => new Date()),
     options: authOptionsFromEnv(deps.env),
   });
-  return { auth, audit, cookie: cookieSettings(deps.env) };
+  return {
+    auth,
+    audit,
+    cookie: cookieSettings(deps.env),
+    users: new UsersService({ repos: deps.repos, audit }),
+    organizations: new OrganizationsService({ repos: deps.repos, audit }),
+  };
 }

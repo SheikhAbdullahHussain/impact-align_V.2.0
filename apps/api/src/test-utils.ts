@@ -31,7 +31,13 @@ export function buildTestContext(
     },
     { serviceName: 'impactalign-api', version: 'test', timeoutMs: 200, logger },
   );
-  const services = { auth: t.auth, audit: t.audit, cookie: cookieSettings(env) };
+  const services = {
+    auth: t.auth,
+    audit: t.audit,
+    cookie: cookieSettings(env),
+    users: t.users,
+    organizations: t.organizations,
+  };
   const app = createApp({ env, logger, healthService, services });
   return { app, env, ...t };
 }

@@ -10,10 +10,12 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "openapi:export": "tsx src/openapi/export.ts"
+    "openapi:export": "tsx src/openapi/export.ts",
+    "admin:create": "tsx src/scripts/create-super-admin.ts"
   },
   "dependencies": {
     "@impactalign/config": "*",
+    "@impactalign/auth": "*",
     "@impactalign/database": "*",
     "@impactalign/types": "*",
     "@impactalign/validation": "*",

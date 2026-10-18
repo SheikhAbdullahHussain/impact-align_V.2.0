@@ -1,4 +1,4 @@
-import type { AuditEvent, PlatformRole } from '@impactalign/types';
+import type { AuditEvent, OrganizationRole, PlatformRole } from '@impactalign/types';
 
 export class DuplicateEmailError extends Error {
   constructor() {
@@ -100,10 +100,41 @@ export interface AuditRepository {
   insert(entry: AuditEntry): Promise<void>;
 }
 
+export interface OrganizationRecord {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date;
+}
+export interface MembershipRecord {
+  organizationId: string;
+  userId: string;
+  role: OrganizationRole;
+}
+export interface MemberRecord {
+  userId: string;
+  displayName: string;
+  role: OrganizationRole;
+}
+export interface OrganizationRepository {
+  create(data: { name: string; slug: string; createdById: string }): Promise<OrganizationRecord>;
+  rename(id: string, name: string): Promise<void>;
+  /** Removes an organization and its memberships (used only to undo a half-finished creation). */
+  remove(id: string): Promise<void>;
+  addMember(organizationId: string, userId: string, role: OrganizationRole): Promise<void>;
+  findById(id: string): Promise<OrganizationRecord | null>;
+  findMembership(organizationId: string, userId: string): Promise<MembershipRecord | null>;
+  listForUser(
+    userId: string,
+  ): Promise<{ organization: OrganizationRecord; role: OrganizationRole }[]>;
+  listMembers(organizationId: string): Promise<MemberRecord[]>;
+}
+
 export interface Repositories {
   users: UserRepository;
   sessions: SessionRepository;
   tokens: OneTimeTokenRepository;
   loginAttempts: LoginAttemptRepository;
   audit: AuditRepository;
+  organizations: OrganizationRepository;
 }

@@ -3,6 +3,8 @@ import { AuditService } from '../auth/audit.service';
 import { AuthService, type AuthServiceOptions } from '../auth/auth.service';
 import type { EmailSender } from '../auth/email';
 import { createLogger } from '../common/logger';
+import { OrganizationsService } from '../organizations/organizations.service';
+import { UsersService } from '../users/users.service';
 import { createMemoryRepositories } from './memory-repositories';
 
 export interface SentEmail {
@@ -74,5 +76,7 @@ export function buildAuthTestContext(overrides: Partial<AuthServiceOptions> = {}
     await auth.verifyEmail(email.tokenFor('verify', address), ctx);
     return auth.login({ email: address, password }, ctx);
   }
-  return { auth, audit, repos, email, hasher, clock, advance, ctx, signUp };
+  const users = new UsersService({ repos, audit });
+  const organizations = new OrganizationsService({ repos, audit });
+  return { auth, audit, users, organizations, repos, email, hasher, clock, advance, ctx, signUp };
 }

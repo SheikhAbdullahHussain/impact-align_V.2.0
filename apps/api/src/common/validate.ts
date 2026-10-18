@@ -28,3 +28,11 @@ export function validateBody<T>(schema: BodySchema<T>): RequestHandler {
     next();
   };
 }
+
+/** Route parameter must be a valid id; anything else is reported as "not found" (no probing). */
+export function validateIdParam(name: string, isValid: (value: string) => boolean): RequestHandler {
+  return (req, _res, next) => {
+    const value = req.params[name];
+    return typeof value === 'string' && isValid(value) ? next() : next(HttpError.notFound());
+  };
+}
