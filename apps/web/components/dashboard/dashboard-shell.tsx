@@ -1,12 +1,19 @@
 import Link from 'next/link';
-import { Badge, Container, SkipLink } from '@impactalign/ui';
+import type { PublicUser } from '@impactalign/types';
+import { Container, SkipLink } from '@impactalign/ui';
 import { siteConfig } from '@impactalign/config';
 import { BrandMark } from '@/components/layout/brand-mark';
 import { DashboardNavList } from './dashboard-nav';
+import { LogoutButton } from './logout-button';
 import { PreviewBanner } from './preview-banner';
 
-/** Authenticated-area chrome (kept separate from the public marketing layout). */
-export function DashboardShell({ children }: { readonly children: React.ReactNode }) {
+export interface DashboardShellProps {
+  readonly user: Pick<PublicUser, 'displayName'>;
+  readonly children?: React.ReactNode;
+}
+
+/** Signed-in area chrome (kept separate from the public marketing layout). */
+export function DashboardShell({ user, children }: DashboardShellProps) {
   return (
     <div className="min-h-dvh bg-navy-50">
       <SkipLink />
@@ -17,13 +24,10 @@ export function DashboardShell({ children }: { readonly children: React.ReactNod
             {siteConfig.shortName}
           </Link>
           <div className="flex items-center gap-3">
-            <Badge tone="gold">Preview · not signed in</Badge>
-            <Link
-              href="/"
-              className="text-sm font-semibold text-navy-900 underline-offset-4 hover:underline"
-            >
-              Back to site
-            </Link>
+            <span className="hidden text-sm text-navy-800 sm:inline">
+              Signed in as <strong className="text-navy-900">{user.displayName}</strong>
+            </span>
+            <LogoutButton />
           </div>
         </Container>
       </header>

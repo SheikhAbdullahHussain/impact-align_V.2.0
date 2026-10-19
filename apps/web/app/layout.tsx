@@ -1,34 +1,16 @@
-import type { Metadata, Viewport } from 'next';
-import { headers } from 'next/headers';
-import { siteConfig } from '@impactalign/config';
-import { siteUrl } from '@/lib/site-url';
-import './globals.css';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { getSession } from '@/lib/auth/session';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  openGraph: {
-    type: 'website',
-    siteName: siteConfig.name,
-    title: siteConfig.name,
-    description: siteConfig.description,
-  },
-  twitter: { card: 'summary', title: siteConfig.name, description: siteConfig.description },
+  title: { default: 'Dashboard', template: '%s | Dashboard' },
+  robots: { index: false, follow: false, nocache: true },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0f2040' };
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Reading request headers opts the tree into dynamic rendering, which the per-request CSP nonce requires.
-  await headers();
-  return (
-    <html lang="en">
-      <body className="min-h-dvh antialiased">{children}</body>
-    </html>
-  );
+/** Every dashboard page requires a session that the API confirms; otherwise: sign in first. */
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+  if (!session) redirect('/login?next=/dashboard');
+  return <DashboardShell user={session.user}>{children}</DashboardShell>;
 }

@@ -185,10 +185,18 @@ describe('cross-organization access', () => {
     const t = buildTestContext();
     const ada = await person(t, 'ada');
     const bob = await person(t, 'bob');
-    const org1 = (await post(ada, '/api/v1/organizations', { name: 'Acme Research' })).body
-      .organization;
-    const org2 = (await post(bob, '/api/v1/organizations', { name: 'Beta Labs' })).body
-      .organization;
+
+    const firstOrgResponse = await post(ada, '/api/v1/organizations', {
+      name: 'Acme Research',
+    });
+    // console.log('ORG CREATE DEBUG:', firstOrgResponse.status, firstOrgResponse.body);
+
+    const org1 = firstOrgResponse.body.organization;
+    const secondOrgResponse = await post(bob, '/api/v1/organizations', {
+      name: 'Beta Labs',
+    });
+    const org2 = secondOrgResponse.body.organization;
+
     return { t, ada, bob, org1, org2 };
   }
 

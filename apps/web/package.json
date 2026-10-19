@@ -13,6 +13,8 @@
   "dependencies": {
     "@impactalign/config": "*",
     "@impactalign/ui": "*",
+    "@impactalign/types": "*",
+    "@impactalign/validation": "*",
     "next": "^16.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
