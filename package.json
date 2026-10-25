@@ -1,0 +1,68 @@
+{
+  "name": "impactalign",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ImpactAlign SDG \u2014 AI-assisted SDG impact alignment, evidence and accreditation platform (monorepo).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.9.7",
+  "workspaces": [
+    "packages/config",
+    "packages/types",
+    "packages/api-client",
+    "packages/validation",
+    "packages/database",
+    "packages/auth",
+    "packages/ai",
+    "packages/ui",
+    "apps/api",
+    "apps/web",
+    "apps/admin"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "dev:infra": "docker compose --env-file .env -f infrastructure/docker/docker-compose.dev.yml up -d",
+    "dev:infra:down": "docker compose --env-file .env -f infrastructure/docker/docker-compose.dev.yml down",
+    "dev:api": "npm run dev -w @impactalign/api",
+    "dev:web": "npm run dev -w @impactalign/web",
+    "dev:admin": "npm run dev -w @impactalign/admin",
+    "build:packages": "node scripts/run-workspaces.mjs packages build",
+    "build": "node scripts/run-workspaces.mjs all build",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run build:packages && node scripts/run-workspaces.mjs all typecheck",
+    "test": "npm run build:packages && node scripts/run-workspaces.mjs all test",
+    "check:env": "node scripts/check-env.mjs",
+    "clean": "node scripts/clean.mjs"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": [
+      "eslint --fix --max-warnings=0 --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@next/eslint-plugin-next": "^16.4.0",
+    "@types/node": "^22.20.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  }
+}

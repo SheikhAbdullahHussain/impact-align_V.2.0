@@ -1,0 +1,5 @@
+# Keep LF line endings on every OS (Prettier and CI expect LF; avoids CRLF noise on Windows).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
