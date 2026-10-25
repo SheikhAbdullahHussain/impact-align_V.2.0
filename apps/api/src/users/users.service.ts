@@ -52,7 +52,7 @@ export class UsersService {
       requestId: ctx.requestId,
       ipAddress: ctx.ipAddress,
     };
-    if (!decision.ok) {
+    if (decision.ok === false) {
       await audit.record({
         ...base,
         outcome: 'failure',
