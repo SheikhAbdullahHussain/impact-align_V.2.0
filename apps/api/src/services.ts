@@ -8,6 +8,7 @@ import type { AppLogger } from './common/logger';
 import type { Repositories } from './data/repositories';
 import { OrganizationsService } from './organizations/organizations.service';
 import { UsersService } from './users/users.service';
+import { SdgsService } from './sdgs/sdgs.service';
 
 export interface Services {
   auth: AuthService;
@@ -15,6 +16,7 @@ export interface Services {
   cookie: CookieSettings;
   users: UsersService;
   organizations: OrganizationsService;
+  sdgs: SdgsService;
 }
 
 export function authOptionsFromEnv(env: ApiEnv): AuthServiceOptions {
@@ -55,5 +57,6 @@ export function createServices(deps: ServiceDeps): Services {
     cookie: cookieSettings(deps.env),
     users: new UsersService({ repos: deps.repos, audit }),
     organizations: new OrganizationsService({ repos: deps.repos, audit }),
+    sdgs: new SdgsService(deps.repos.sdgs),
   };
 }

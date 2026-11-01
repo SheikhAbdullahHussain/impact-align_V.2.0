@@ -5,6 +5,7 @@ import { cookieSettings } from './auth/cookies';
 import { createLogger } from './common/logger';
 import { HealthService, type HealthProbes } from './health/health.service';
 import { buildAuthTestContext } from './testing/auth-context';
+import { SdgsService } from './sdgs/sdgs.service';
 
 export const testEnv = (overrides: Record<string, string> = {}): ApiEnv =>
   parseApiEnv({
@@ -31,16 +32,29 @@ export function buildTestContext(
     },
     { serviceName: 'impactalign-api', version: 'test', timeoutMs: 200, logger },
   );
+  // const services = {
+  //   auth,
+  //   audit,
+  //   cookie,
+  //   users,
+  //   organizations,
+  //   sdgs: new SdgsService(repos.sdgs),
+  // };
   const services = {
-    auth: t.auth,
-    audit: t.audit,
-    cookie: cookieSettings(env),
-    users: t.users,
-    organizations: t.organizations,
-  };
+  auth: t.auth,
+  audit: t.audit,
+  cookie: cookieSettings(env),
+  users: t.users,
+  organizations: t.organizations,
+  sdgs: new SdgsService(t.repos.sdgs),
+};
+
+
+  
   const app = createApp({ env, logger, healthService, services });
   return { app, env, ...t };
 }
+
 
 export function buildTestApp(
   probes: Partial<HealthProbes> = {},

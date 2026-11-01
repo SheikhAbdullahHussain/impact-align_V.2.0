@@ -9,6 +9,9 @@ import {
   PasswordResetToken,
   Session,
   User,
+  SDG,
+  SDGTarget,
+  SDGIndicator,
 } from '@impactalign/database';
 import {
   DuplicateEmailError,
@@ -19,6 +22,10 @@ import {
   type Repositories,
   type SessionRecord,
   type UserRecord,
+  type SdgRecord,
+  type SdgTargetRecord,
+  type SdgIndicatorRecord,
+
 } from './repositories';
 
 /** Strict check: 24 hex chars that round-trip (rejects 12-character strings Mongoose would accept). */
@@ -68,6 +75,43 @@ interface LeanToken {
   usedAt?: Date | null;
 }
 
+interface LeanSdg {
+  _id: Types.ObjectId;
+  number: number;
+  code: string;
+  title?: string | null;
+  description?: string | null;
+  officialUrl?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface LeanSdgTarget {
+  _id: Types.ObjectId;
+  sdgId: Types.ObjectId;
+  code: string;
+  title?: string | null;
+  description?: string | null;
+  officialUrl?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface LeanSdgIndicator {
+  _id: Types.ObjectId;
+  sdgId: Types.ObjectId;
+  targetId?: Types.ObjectId | null;
+  code: string;
+  title?: string | null;
+  description?: string | null;
+  officialUrl?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const toUser = (d: LeanUser): UserRecord => ({
   id: d._id.toHexString(),
   email: d.email,
@@ -97,6 +141,43 @@ const toOrganization = (d: LeanOrganization): OrganizationRecord => ({
   name: d.name,
   slug: d.slug,
   createdAt: d.createdAt,
+});
+
+const toSdg = (d: LeanSdg): SdgRecord => ({
+  id: d._id.toHexString(),
+  number: d.number,
+  code: d.code,
+  title: d.title ?? null,
+  description: d.description ?? null,
+  officialUrl: d.officialUrl ?? null,
+  metadata: d.metadata ?? null,
+  createdAt: d.createdAt,
+  updatedAt: d.updatedAt,
+});
+
+const toSdgTarget = (d: LeanSdgTarget): SdgTargetRecord => ({
+  id: d._id.toHexString(),
+  sdgId: d.sdgId.toHexString(),
+  code: d.code,
+  title: d.title ?? null,
+  description: d.description ?? null,
+  officialUrl: d.officialUrl ?? null,
+  metadata: d.metadata ?? null,
+  createdAt: d.createdAt,
+  updatedAt: d.updatedAt,
+});
+
+const toSdgIndicator = (d: LeanSdgIndicator): SdgIndicatorRecord => ({
+  id: d._id.toHexString(),
+  sdgId: d.sdgId.toHexString(),
+  targetId: d.targetId?.toHexString() ?? null,
+  code: d.code,
+  title: d.title ?? null,
+  description: d.description ?? null,
+  officialUrl: d.officialUrl ?? null,
+  metadata: d.metadata ?? null,
+  createdAt: d.createdAt,
+  updatedAt: d.updatedAt,
 });
 
 const tokenModel = (kind: OneTimeTokenKind) =>
@@ -311,6 +392,50 @@ export function createMongoRepositories(): Repositories {
           displayName: users.find((u) => u._id.equals(m.userId))?.displayName ?? 'Unknown',
           role: m.role as OrganizationRole,
         }));
+      },
+    },
+    sdgs: {
+      async listSDGs() {
+        const docs = await SDG.find({ deletedAt: null })
+          .sort({ number: 1 })
+          .lean<LeanSdg[]>();
+
+        return docs.map(toSdg);
+      },
+
+      async findSDGByNumber(number) {
+        const doc = await SDG.findOne({
+          number,
+          deletedAt: null,
+        }).lean<LeanSdg>();
+
+        return doc ? toSdg(doc) : null;
+      },
+
+      async listTargetsBySdgId(sdgId) {
+        if (!isId(sdgId)) return [];
+
+        const docs = await SDGTarget.find({
+          sdgId: new Types.ObjectId(sdgId),
+          deletedAt: null,
+        })
+          .sort({ code: 1 })
+          .lean<LeanSdgTarget[]>();
+
+        return docs.map(toSdgTarget);
+      },
+
+      async listIndicatorsBySdgId(sdgId) {
+        if (!isId(sdgId)) return [];
+
+        const docs = await SDGIndicator.find({
+          sdgId: new Types.ObjectId(sdgId),
+          deletedAt: null,
+        })
+          .sort({ code: 1 })
+          .lean<LeanSdgIndicator[]>();
+
+        return docs.map(toSdgIndicator);
       },
     },
   };

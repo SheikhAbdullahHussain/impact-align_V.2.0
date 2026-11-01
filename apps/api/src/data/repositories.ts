@@ -137,4 +137,49 @@ export interface Repositories {
   loginAttempts: LoginAttemptRepository;
   audit: AuditRepository;
   organizations: OrganizationRepository;
+  sdgs: SdgRepository;
+}
+
+export interface SdgRecord {
+  id: string;
+  number: number;
+  code: string;
+  title: string | null;
+  description: string | null;
+  officialUrl: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SdgTargetRecord {
+  id: string;
+  sdgId: string;
+  code: string;
+  title: string | null;
+  description: string | null;
+  officialUrl: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SdgIndicatorRecord {
+  id: string;
+  sdgId: string;
+  targetId: string | null;
+  code: string;
+  title: string | null;
+  description: string | null;
+  officialUrl: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SdgRepository {
+  listSDGs(): Promise<SdgRecord[]>;
+  findSDGByNumber(number: number): Promise<SdgRecord | null>;
+  listTargetsBySdgId(sdgId: string): Promise<SdgTargetRecord[]>;
+  listIndicatorsBySdgId(sdgId: string): Promise<SdgIndicatorRecord[]>;
 }

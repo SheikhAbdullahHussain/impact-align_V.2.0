@@ -9,6 +9,15 @@ import {
   Session,
   User,
 } from './index';
+import {
+  SDG,
+  SDGTarget,
+  SDGIndicator,
+  Framework,
+  FrameworkVersion,
+  Criterion,
+  EvidenceRequirement,
+} from './index';
 
 const id = () => new Types.ObjectId();
 const indexKeys = (model: { schema: { indexes(): [Record<string, unknown>, object][] } }) =>
@@ -99,5 +108,72 @@ describe('Organization and membership', () => {
     expect(Object.keys(new Organization({}).validateSync()?.errors ?? {})).toEqual(
       expect.arrayContaining(['name', 'slug', 'createdById']),
     );
+  });
+});
+
+describe('SDG catalogue models', () => {
+  it('requires a valid SDG number and code', () => {
+    expect(new SDG({}).validateSync()?.errors).toHaveProperty('number');
+    expect(new SDG({}).validateSync()?.errors).toHaveProperty('code');
+
+    const sdg = new SDG({
+      number: 1,
+      code: 'SDG-01',
+    });
+
+    expect(sdg.validateSync()).toBeUndefined();
+    expect(sdg.title).toBeNull();
+    expect(sdg.deletedAt).toBeNull();
+  });
+
+  it('limits SDG numbers to 1–17', () => {
+    expect(new SDG({ number: 18, code: 'SDG-18' }).validateSync()).toBeDefined();
+    expect(new SDG({ number: 1, code: 'SDG-01' }).validateSync()).toBeUndefined();
+  });
+
+  it('indexes SDG targets and indicators by their relationships', () => {
+    expect(indexKeys(SDGTarget)).toContain('sdgId+code');
+    expect(indexKeys(SDGIndicator)).toContain('sdgId+code');
+    expect(indexKeys(SDGIndicator)).toContain('targetId');
+  });
+
+  it('requires target and indicator identifiers', () => {
+    expect(
+      Object.keys(new SDGTarget({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['sdgId', 'code']));
+
+    expect(
+      Object.keys(new SDGIndicator({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['sdgId', 'code']));
+  });
+});
+
+describe('Framework models', () => {
+  it('requires framework name and slug', () => {
+    expect(
+      Object.keys(new Framework({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['name', 'slug']));
+  });
+
+  it('enforces framework version relationships', () => {
+    expect(
+      Object.keys(new FrameworkVersion({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['frameworkId', 'version']));
+  });
+
+  it('requires criterion and evidence requirement relationships', () => {
+    expect(
+      Object.keys(new Criterion({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['frameworkVersionId', 'code']));
+
+    expect(
+      Object.keys(new EvidenceRequirement({}).validateSync()?.errors ?? {}),
+    ).toEqual(expect.arrayContaining(['criterionId', 'code']));
+  });
+
+  it('creates unique indexes for framework hierarchy codes', () => {
+    expect(indexKeys(FrameworkVersion)).toContain('frameworkId+version');
+    expect(indexKeys(Criterion)).toContain('frameworkVersionId+code');
+    expect(indexKeys(EvidenceRequirement)).toContain('criterionId+code');
   });
 });
