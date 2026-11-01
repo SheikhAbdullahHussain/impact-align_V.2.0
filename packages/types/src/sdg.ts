@@ -6,7 +6,7 @@ export interface SdgDto {
     description: string | null;
     officialUrl: string | null;
   }
-  
+
   export interface SdgTargetDto {
     id: string;
     sdgId: string;
@@ -15,7 +15,7 @@ export interface SdgDto {
     description: string | null;
     officialUrl: string | null;
   }
-  
+
   export interface SdgIndicatorDto {
     id: string;
     sdgId: string;
