@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Container } from '@impactalign/ui';
 import { PageHero } from '@/components/marketing/page-hero';
 import { CtaBanner } from '@/components/marketing/cta-banner';
@@ -96,14 +97,22 @@ export default function AccreditationPage() {
           </p>
         </section>
 
-        <p
+        <p className="mx-auto mt-8 max-w-3xl">
+          <Link
+            href="/accreditation/faqs"
+            className="font-semibold text-navy-900 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+          >
+            Read the accreditation FAQs →
+          </Link>
+        </p>
+        {/* <p
           role="note"
           className="mx-auto mt-8 max-w-3xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm leading-6 text-navy-900"
         >
           Development status: This page describes the intended journey. It does not represent a
           guarantee of accreditation, certification or recognition by an external accreditation
           body.
-        </p>
+        </p> */}
       </Container>
 
       <CtaBanner />

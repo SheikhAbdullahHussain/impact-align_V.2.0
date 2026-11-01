@@ -1,9 +1,10 @@
+
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button, Container } from '@impactalign/ui';
-import { joinNav, loginNav, publicNav, siteConfig } from '@impactalign/config';
+import { joinNav, loginNav, publicNav } from '@impactalign/config';
 import { MobileMenu } from '@/components/navigation/mobile-menu';
 import { NavLink } from '@/components/navigation/nav-link';
-import { BrandMark } from './brand-mark';
 
 export function SiteHeader() {
   return (
@@ -12,13 +13,21 @@ export function SiteHeader() {
         aria-hidden="true"
         className="h-1 bg-gradient-to-r from-navy-900 via-teal-700 to-gold-500"
       />
+
       <Container className="relative flex h-16 items-center justify-between gap-4">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-serif text-lg font-bold text-navy-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+          aria-label="ImpactAlign home"
+          className="flex shrink-0 items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
         >
-          <BrandMark className="size-8" />
-          {siteConfig.name}
+          <Image
+            src="/LOGO-IMPACTALIGN_SDG-removebg-preview.png"
+            alt="ImpactAlign — Sustainable Development Goals"
+            width={220}
+            height={86}
+            priority
+            className="h-auto w-[150px] sm:w-[180px] lg:w-[190px] object-contain"
+          />
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">
@@ -28,6 +37,7 @@ export function SiteHeader() {
                 <NavLink href={item.href}>{item.label}</NavLink>
               </li>
             ))}
+
             <li className="pl-2">
               <Button asChild variant="accent" size="sm">
                 <Link href={joinNav.href}>{joinNav.label}</Link>
