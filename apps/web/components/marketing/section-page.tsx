@@ -5,7 +5,7 @@ import { ItemGrid } from './item-grid';
 import { PageHero } from './page-hero';
 import { CtaBanner } from './cta-banner';
 
-/** Public section page: hero + the topics the section will cover. Honest about being a placeholder. */
+/** Public section page: hero + the topics the section covers. Shows a placeholder note until the section is published. */
 export function SectionPage({ slug }: { readonly slug: string }) {
   const section = getSection(slug);
   return (
@@ -23,7 +23,8 @@ export function SectionPage({ slug }: { readonly slug: string }) {
             <div className="mt-6">
               <ItemGrid
                 items={section.topics.map((topic) => ({
-                  ...topic,
+                  title: topic.title,
+                  description: topic.description,
                   href: topicHref(section, topic),
                 }))}
                 tone="muted"
@@ -31,12 +32,14 @@ export function SectionPage({ slug }: { readonly slug: string }) {
             </div>
           </>
         )}
-        <p
-          role="note"
-          className="mt-10 max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
-        >
-          Note: This section is under development.
-        </p>
+        {!section.published && (
+          <p
+            role="note"
+            className="mt-10 max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
+          >
+            Note: This section is under development.
+          </p>
+        )}
       </Container>
       {slug !== 'join-impactalign' && <CtaBanner />}
     </>

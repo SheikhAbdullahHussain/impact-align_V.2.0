@@ -1,16 +1,24 @@
 import type { TitledItem } from './home-content';
 
+export interface TopicItem extends TitledItem {
+  /** Real page copy, one string per paragraph. Without it the topic page shows the "under development" note. */
+  readonly body?: readonly string[];
+}
+
 export interface SectionContent {
   readonly slug: string;
   readonly title: string;
   readonly eyebrow: string;
   readonly intro: string;
   /** Planned topics for the section (names follow the public site map). */
-  readonly topics: readonly TitledItem[];
+  readonly topics: readonly TopicItem[];
+  /** Set to true once the section holds real, reviewed copy; hides the "under development" note. */
+  readonly published?: boolean;
 }
 
 const soon = 'Content for this topic is being prepared.';
-const t = (title: string, description = soon): TitledItem => ({ title, description });
+const t = (title: string, description = soon, body?: readonly string[]): TopicItem =>
+  body ? { title, description, body } : { title, description };
 
 export const sections: readonly SectionContent[] = [
   {

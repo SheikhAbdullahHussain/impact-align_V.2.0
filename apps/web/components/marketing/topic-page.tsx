@@ -1,16 +1,15 @@
 import Link from 'next/link';
 import { Container } from '@impactalign/ui';
-import type { TitledItem } from '@/lib/home-content';
-import type { SectionContent } from '@/lib/section-content';
+import type { SectionContent, TopicItem } from '@/lib/section-content';
 import { slugify, topicHref } from '@/lib/topics';
 import { PageHero } from './page-hero';
 
 export interface TopicPageProps {
   readonly section: SectionContent;
-  readonly topic: TitledItem;
+  readonly topic: TopicItem;
 }
 
-/** Sub-page for one topic of a public section. Content is a labelled placeholder. */
+/** Sub-page for one topic of a public section. Shows real copy when present, else a labelled placeholder. */
 export function TopicPage({ section, topic }: TopicPageProps) {
   const siblings = section.topics.filter((t) => slugify(t.title) !== slugify(topic.title));
   return (
@@ -26,12 +25,20 @@ export function TopicPage({ section, topic }: TopicPageProps) {
         ]}
       />
       <Container className="py-12 md:py-16">
-        <p
-          role="note"
-          className="max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
-        >
-          Note: This page is under development.
-        </p>
+        {topic.body ? (
+          <div className="max-w-3xl space-y-4 leading-7 text-navy-800">
+            {topic.body.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        ) : (
+          <p
+            role="note"
+            className="max-w-2xl rounded-md border border-gold-500 bg-gold-50 p-4 text-sm text-navy-900"
+          >
+            Note: This page is under development.
+          </p>
+        )}
         {siblings.length > 0 && (
           <nav aria-label={`More in ${section.title}`} className="mt-10">
             <h2 className="font-serif text-2xl font-bold text-navy-900">More in {section.title}</h2>

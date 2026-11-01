@@ -1,5 +1,5 @@
 import type { TitledItem } from './home-content';
-import { sections, type SectionContent } from './section-content';
+import { sections, type SectionContent, type TopicItem } from './section-content';
 
 /** URL slug for a topic title: "Vision & Mission" -> "vision-and-mission". */
 export function slugify(title: string): string {
@@ -16,7 +16,7 @@ export const topicHref = (section: SectionContent, topic: TitledItem): string =>
 export function findTopic(
   sectionSlug: string,
   topicSlug: string,
-): { section: SectionContent; topic: TitledItem } | null {
+): { section: SectionContent; topic: TopicItem } | null {
   const section = sections.find((s) => s.slug === sectionSlug);
   const topic = section?.topics.find((t) => slugify(t.title) === topicSlug);
   return section && topic ? { section, topic } : null;
