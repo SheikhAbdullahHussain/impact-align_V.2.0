@@ -10,3 +10,6 @@ export * from './models/organization.models';
 export * from './models/sdg.models';
 export * from './models/framework.models';
 export * from './seed/sdg.seed';
+export * from './models/project.model';
+export * from './models/evidence.model';
+export * from './models/review-note.model';

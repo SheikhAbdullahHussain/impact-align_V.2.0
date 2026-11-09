@@ -1,8 +1,8 @@
-import { DashboardPage } from '@/components/dashboard/dashboard-page';
-import { dashboardMetadata } from '@/lib/dashboard-content';
+import type { Metadata } from 'next';
+import { AssessmentsHome } from '@/components/dashboard/assessments-home';
 
-export const metadata = dashboardMetadata('/dashboard/assessments');
+export const metadata: Metadata = { title: 'My Assessments' };
 
 export default function Page() {
-  return <DashboardPage href="/dashboard/assessments" />;
+  return <AssessmentsHome />;
 }

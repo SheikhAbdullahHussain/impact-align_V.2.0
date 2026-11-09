@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-// Validates .env against the API environment contract. Prints variable names only — never values.
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 

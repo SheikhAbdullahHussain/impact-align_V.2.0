@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "openapi:export": "tsx src/openapi/export.ts",
-    "admin:create": "tsx src/scripts/create-super-admin.ts"
+    "admin:create": "tsx src/scripts/create-super-admin.ts",
+    "seed:sdgs": "tsx src/scripts/seed-sdgs.ts"
   },
   "dependencies": {
     "@impactalign/config": "*",

@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const found = findTopic(section, topic);
   if (!found) return {};
   return {
-    title: `${found.topic.title} — ${found.section.title}`,
+    title: found.topic.title,
     description: found.topic.description,
     alternates: { canonical: `/${section}/${topic}` },
   };

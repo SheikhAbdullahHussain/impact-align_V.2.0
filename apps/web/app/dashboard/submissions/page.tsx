@@ -1,8 +1,8 @@
-import { DashboardPage } from '@/components/dashboard/dashboard-page';
-import { dashboardMetadata } from '@/lib/dashboard-content';
+import type { Metadata } from 'next';
+import { ProjectStatusList } from '@/components/dashboard/project-status-list';
 
-export const metadata = dashboardMetadata('/dashboard/submissions');
+export const metadata: Metadata = { title: 'My Submissions' };
 
 export default function Page() {
-  return <DashboardPage href="/dashboard/submissions" />;
+  return <ProjectStatusList mode="submissions" />;
 }

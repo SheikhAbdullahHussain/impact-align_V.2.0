@@ -1,0 +1,46 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261108001422
+Username: SHEIKH-ABDULLAH\ADMIN
+RunAs User: SHEIKH-ABDULLAH\ADMIN
+Configuration Name: 
+Machine: SHEIKH-ABDULLAH (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noexit -command try { . "c:\Program Files\cursor\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 1636
+PSVersion: 5.1.19041.7663
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.7663
+BuildVersion: 10.0.19041.7663
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is impactalign-phase-checks.txt
+
+========== npm run lint ==========
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         Write-Host "FAILED: $command" -ForegroundColor Red
+>>         break
+>>     }
+>> }
+>>
+>> Stop-Transcript
+Transcript started, output file is impactalign-phase-checks.txt
+
+========== npm run lint ==========
+
+> impactalign@0.1.0 lint
+> eslint . --max-warnings=0
+
+========== npm run typecheck ==========
+
+========== npm test ==========
+
+========== npm run build ==========
+
+**********************
+Windows PowerShell transcript end
+End time: 20261108002404
+**********************

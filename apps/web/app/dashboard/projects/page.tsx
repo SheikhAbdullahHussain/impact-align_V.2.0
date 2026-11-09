@@ -1,8 +1,8 @@
-import { DashboardPage } from '@/components/dashboard/dashboard-page';
-import { dashboardMetadata } from '@/lib/dashboard-content';
+import type { Metadata } from 'next';
+import { ProjectsManager } from '@/components/dashboard/projects-manager';
 
-export const metadata = dashboardMetadata('/dashboard/projects');
+export const metadata: Metadata = { title: 'Projects' };
 
 export default function Page() {
-  return <DashboardPage href="/dashboard/projects" />;
+  return <ProjectsManager />;
 }

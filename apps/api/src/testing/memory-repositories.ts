@@ -10,8 +10,11 @@ import {
   type SessionRecord,
   type UserRecord,
   type SdgRecord,
-type SdgTargetRecord,
-type SdgIndicatorRecord,
+  type SdgTargetRecord,
+  type ProjectRecord,
+  type SdgIndicatorRecord,
+  type EvidenceRecord,
+  type ReviewNoteRecord,
 } from '../data/repositories';
 
 /** In-memory repositories for tests. They mimic the atomic behaviour the real adapters must have. */
@@ -25,8 +28,11 @@ export interface MemoryRepositories extends Repositories {
     orgs: OrganizationRecord[];
     members: MembershipRecord[];
     sdgs: SdgRecord[];
-sdgTargets: SdgTargetRecord[];
-sdgIndicators: SdgIndicatorRecord[];
+    sdgTargets: SdgTargetRecord[];
+    sdgIndicators: SdgIndicatorRecord[];
+    projects: ProjectRecord[];
+    evidence: EvidenceRecord[];
+    reviewNotes: ReviewNoteRecord[];
   };
 }
 
@@ -45,7 +51,9 @@ export function createMemoryRepositories(): MemoryRepositories {
     sdgs: [],
     sdgTargets: [],
     sdgIndicators: [],
-
+    projects: [],
+    evidence: [],
+    reviewNotes: [],
   };
   const user = (id: string) => data.users.find((u) => u.id === id);
   const copy = (u: UserRecord): UserRecord => ({ ...u, roles: [...u.roles] });
@@ -221,6 +229,89 @@ export function createMemoryRepositories(): MemoryRepositories {
         return data.sdgIndicators
           .filter((indicator) => indicator.sdgId === sdgId)
           .sort((a, b) => a.code.localeCompare(b.code));
+      },
+    },
+    projects: {
+      async create(input) {
+        const now = new Date();
+        const record: ProjectRecord = {
+          id: newId(),
+          status: 'DRAFT',
+          submittedAt: null,
+          reviewerId: null,
+          createdAt: now,
+          updatedAt: now,
+          ...input,
+        };
+        data.projects.push(record);
+        return { ...record };
+      },
+      async listByOwner(ownerId) {
+        return data.projects
+          .filter((p) => p.ownerId === ownerId)
+          .reverse()
+          .map((p) => ({ ...p }));
+      },
+      async findById(id) {
+        const found = data.projects.find((p) => p.id === id);
+        return found ? { ...found } : null;
+      },
+      async update(id, input) {
+        const found = data.projects.find((p) => p.id === id);
+        if (!found) return null;
+        Object.assign(found, input, { updatedAt: new Date() });
+        return { ...found };
+      },
+      async softDelete(id) {
+        data.projects = data.projects.filter((p) => p.id !== id);
+      },
+      async transition(id, from, to, submittedAt) {
+        const found = data.projects.find((p) => p.id === id && p.status === from);
+        if (!found) return null;
+        Object.assign(found, { status: to, submittedAt, updatedAt: new Date() });
+        return { ...found };
+      },
+      async listByStatus(statuses) {
+        return data.projects
+          .filter((p) => statuses.includes(p.status))
+          .sort((a, b) => (a.submittedAt?.getTime() ?? 0) - (b.submittedAt?.getTime() ?? 0))
+          .map((p) => ({ ...p }));
+      },
+      async transitionReview(id, from, to, reviewerId) {
+        const found = data.projects.find((p) => p.id === id && p.status === from);
+        if (!found) return null;
+        Object.assign(found, { status: to, reviewerId, updatedAt: new Date() });
+        return { ...found };
+      },
+    },
+    evidence: {
+      async create(input) {
+        const record: EvidenceRecord = { id: newId(), createdAt: new Date(), ...input };
+        data.evidence.push(record);
+        return { ...record };
+      },
+      async listByProject(projectId) {
+        return data.evidence
+          .filter((e) => e.projectId === projectId)
+          .reverse()
+          .map((e) => ({ ...e }));
+      },
+      async findById(id) {
+        const found = data.evidence.find((e) => e.id === id);
+        return found ? { ...found } : null;
+      },
+      async softDelete(id) {
+        data.evidence = data.evidence.filter((e) => e.id !== id);
+      },
+    },
+    reviewNotes: {
+      async create(input) {
+        const record: ReviewNoteRecord = { id: newId(), createdAt: new Date(), ...input };
+        data.reviewNotes.push(record);
+        return { ...record };
+      },
+      async listByProject(projectId) {
+        return data.reviewNotes.filter((n) => n.projectId === projectId).map((n) => ({ ...n }));
       },
     },
   };

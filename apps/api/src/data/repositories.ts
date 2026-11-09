@@ -1,5 +1,5 @@
-import type { AuditEvent, OrganizationRole, PlatformRole } from '@impactalign/types';
-
+// import type { AuditEvent, OrganizationRole, PlatformRole, ProjectStatus } from '@impactalign/types';
+import type { AuditEvent, OrganizationRole, PlatformRole, ProjectStatus, ReviewNoteKind } from '@impactalign/types';
 export class DuplicateEmailError extends Error {
   constructor() {
     super('Email already registered');
@@ -138,6 +138,9 @@ export interface Repositories {
   audit: AuditRepository;
   organizations: OrganizationRepository;
   sdgs: SdgRepository;
+  projects: ProjectRepository;
+  evidence: EvidenceRepository;
+  reviewNotes: ReviewNoteRepository;
 }
 
 export interface SdgRecord {
@@ -182,4 +185,80 @@ export interface SdgRepository {
   findSDGByNumber(number: number): Promise<SdgRecord | null>;
   listTargetsBySdgId(sdgId: string): Promise<SdgTargetRecord[]>;
   listIndicatorsBySdgId(sdgId: string): Promise<SdgIndicatorRecord[]>;
+}
+
+export interface ProjectRecord {
+  id: string;
+  ownerId: string;
+  title: string;
+  summary: string;
+  sdgNumbers: number[];
+  status: ProjectStatus;
+  submittedAt: Date | null;
+  reviewerId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface ProjectFields {
+  title: string;
+  summary: string;
+  sdgNumbers: number[];
+}
+export interface ProjectRepository {
+  create(data: ProjectFields & { ownerId: string }): Promise<ProjectRecord>;
+  /** Newest first. Soft-deleted projects are never returned. */
+  listByOwner(ownerId: string): Promise<ProjectRecord[]>;
+  findById(id: string): Promise<ProjectRecord | null>;
+  update(id: string, data: ProjectFields): Promise<ProjectRecord | null>;
+  softDelete(id: string): Promise<void>;
+    /** Atomic compare-and-set: moves the project only if it is currently in `from`. */
+  transition(
+    id: string,
+    from: ProjectStatus,
+    to: ProjectStatus,
+    submittedAt: Date | null,
+  ): Promise<ProjectRecord | null>;
+    
+  /** Projects in any of the given statuses, oldest submission first (reviewer queue). */
+    listByStatus(statuses: ProjectStatus[]): Promise<ProjectRecord[]>;
+    /** Atomic review step: moves the project only if it is in `from`, and sets the reviewer. */
+    transitionReview(
+      id: string,
+      from: ProjectStatus,
+      to: ProjectStatus,
+      reviewerId: string | null,
+    ): Promise<ProjectRecord | null>;
+}
+export interface EvidenceRecord {
+  id: string;
+  projectId: string;
+  ownerId: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  sha256: string;
+  storageKey: string;
+  createdAt: Date;
+}
+export type NewEvidence = Omit<EvidenceRecord, 'id' | 'createdAt'>;
+export interface EvidenceRepository {
+  create(data: NewEvidence): Promise<EvidenceRecord>;
+  /** Newest first. Soft-deleted rows are never returned. */
+  listByProject(projectId: string): Promise<EvidenceRecord[]>;
+  findById(id: string): Promise<EvidenceRecord | null>;
+  softDelete(id: string): Promise<void>;
+}
+
+export interface ReviewNoteRecord {
+  id: string;
+  projectId: string;
+  authorId: string;
+  kind: ReviewNoteKind;
+  message: string;
+  createdAt: Date;
+}
+export interface ReviewNoteRepository {
+  create(data: Omit<ReviewNoteRecord, 'id' | 'createdAt'>): Promise<ReviewNoteRecord>;
+  /** Oldest first. */
+  listByProject(projectId: string): Promise<ReviewNoteRecord[]>;
 }

@@ -1,14 +1,23 @@
+
 import { createScryptHasher, type PasswordHasher } from '@impactalign/auth';
 import type { ApiEnv } from '@impactalign/config';
+
 import { AuditService } from './auth/audit.service';
 import { AuthService, type AuthServiceOptions } from './auth/auth.service';
 import { cookieSettings, type CookieSettings } from './auth/cookies';
 import type { EmailSender } from './auth/email';
 import type { AppLogger } from './common/logger';
 import type { Repositories } from './data/repositories';
+
 import { OrganizationsService } from './organizations/organizations.service';
 import { UsersService } from './users/users.service';
 import { SdgsService } from './sdgs/sdgs.service';
+import { ProjectsService } from './projects/projects.service';
+import { EvidenceService } from './evidence/evidence.service';
+import { AssessmentsService } from './assessments/assessments.service';
+
+import path from 'node:path';
+import { LocalFileStorage, type FileStorage } from './storage/file-storage';
 
 export interface Services {
   auth: AuthService;
@@ -17,6 +26,9 @@ export interface Services {
   users: UsersService;
   organizations: OrganizationsService;
   sdgs: SdgsService;
+  projects: ProjectsService;
+  evidence: EvidenceService;
+  assessments: AssessmentsService;
 }
 
 export function authOptionsFromEnv(env: ApiEnv): AuthServiceOptions {
@@ -38,9 +50,12 @@ export interface ServiceDeps {
   email: EmailSender;
   hasher?: PasswordHasher;
   clock?: () => Date;
+  storage?: FileStorage;
 }
 
-/** Wires repositories, email and policy into the application services. */
+/**
+ * Wires repositories, email and policy into the application services.
+ */
 export function createServices(deps: ServiceDeps): Services {
   const audit = new AuditService(deps.repos.audit, deps.logger);
   const auth = new AuthService({
@@ -51,12 +66,31 @@ export function createServices(deps: ServiceDeps): Services {
     clock: deps.clock ?? (() => new Date()),
     options: authOptionsFromEnv(deps.env),
   });
+
+  const storage =
+    deps.storage ??
+    new LocalFileStorage(path.resolve(deps.env.UPLOAD_DIR));
+
   return {
     auth,
     audit,
     cookie: cookieSettings(deps.env),
+
     users: new UsersService({ repos: deps.repos, audit }),
     organizations: new OrganizationsService({ repos: deps.repos, audit }),
     sdgs: new SdgsService(deps.repos.sdgs),
+    projects: new ProjectsService({ repos: deps.repos, audit }),
+
+    evidence: new EvidenceService({
+      repos: deps.repos,
+      audit,
+      storage,
+    }),
+
+    assessments: new AssessmentsService({
+      repos: deps.repos,
+      audit,
+      storage,
+    }),
   };
 }

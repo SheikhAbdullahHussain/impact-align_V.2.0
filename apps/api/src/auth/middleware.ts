@@ -66,8 +66,13 @@ export function originGuard(allowedOrigins: ReadonlySet<string>): RequestHandler
   };
 }
 
+/** Upload route: raw file body. Still protected by origin check, session and CSRF token. */
+const RAW_UPLOAD = /^\/projects\/[a-f\d]{24}\/evidence$/i;
+
 /** Bodies must be JSON: blocks form-style cross-site posts (which cannot send JSON without CORS). */
-export const requireJson: RequestHandler = (req, _res, next) =>
-  req.is('application/json') === false
+export const requireJson: RequestHandler = (req, _res, next) => {
+  if (req.method === 'POST' && RAW_UPLOAD.test(req.path)) return next();
+  return req.is('application/json') === false
     ? next(new HttpError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Send the body as application/json'))
     : next();
+};

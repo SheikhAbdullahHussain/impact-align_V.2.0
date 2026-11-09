@@ -1,4 +1,14 @@
-import type { PublicUser, ApiErrorBody, ApiErrorDetail, AuthResponse } from '@impactalign/types';
+import type {
+  PublicUser,
+  ApiErrorBody,
+  ApiErrorDetail,
+  AuthResponse,
+  ProjectDto,
+  EvidenceDto,
+  AssessmentDetailDto,
+  AssessmentQueueItemDto,
+  ReviewNoteDto,
+} from '@impactalign/types';
 /** Error returned by the API (or a network failure, status 0). Messages are safe to show to users. */
 export class ApiError extends Error {
   constructor(
@@ -100,6 +110,103 @@ export const authApi = {
       method: 'POST',
       body: { token, password },
     }),
+};
+
+export interface ProjectBody {
+  title: string;
+  summary: string;
+  sdgNumbers: number[];
+}
+
+export const projectsApi = {
+  list: () => apiFetch<{ projects: ProjectDto[] }>('/projects'),
+  create: (body: ProjectBody) =>
+    apiFetch<{ project: ProjectDto }>('/projects', { method: 'POST', body }),
+  remove: (id: string) => apiFetch<void>(`/projects/${id}`, { method: 'DELETE' }),
+  get: (id: string) => apiFetch<{ project: ProjectDto }>(`/projects/${id}`),
+  update: (id: string, body: ProjectBody) =>
+    apiFetch<{ project: ProjectDto }>(`/projects/${id}`, { method: 'PUT', body }),
+  submit: (id: string) =>
+    apiFetch<{ project: ProjectDto }>(`/projects/${id}/submit`, { method: 'POST', body: {} }),
+  withdraw: (id: string) =>
+    apiFetch<{ project: ProjectDto }>(`/projects/${id}/withdraw`, { method: 'POST', body: {} }),
+  feedback: (id: string) => apiFetch<{ notes: ReviewNoteDto[] }>(`/projects/${id}/feedback`),
+};
+
+/** Uploads one file as the raw request body (the API reads the name from X-File-Name). */
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': file.type || 'application/octet-stream',
+    'X-File-Name': encodeURIComponent(file.name),
+  };
+  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+  let response: Response;
+  try {
+    response = await fetch(`/api/v1${path}`, {
+      method: 'POST',
+      headers,
+      credentials: 'same-origin',
+      body: file,
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      'NETWORK_ERROR',
+      'Cannot reach the server. Check your connection and try again.',
+    );
+  }
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = (data as ApiErrorBody | null)?.error;
+    throw new ApiError(
+      response.status,
+      error?.code ?? 'UNKNOWN',
+      error?.message ?? 'Something went wrong',
+      error?.details,
+    );
+  }
+  return data as T;
+}
+
+export const evidenceApi = {
+  list: (projectId: string) =>
+    apiFetch<{ evidence: EvidenceDto[] }>(`/projects/${projectId}/evidence`),
+  upload: (projectId: string, file: File) =>
+    apiUpload<{ evidence: EvidenceDto }>(`/projects/${projectId}/evidence`, file),
+  remove: (projectId: string, evidenceId: string) =>
+    apiFetch<void>(`/projects/${projectId}/evidence/${evidenceId}`, { method: 'DELETE' }),
+  fileUrl: (projectId: string, evidenceId: string) =>
+    `/api/v1/projects/${projectId}/evidence/${evidenceId}/file`,
+};
+
+export interface DecisionBody {
+  decision: 'VERIFIED' | 'REJECTED';
+  rationale: string;
+}
+
+export const assessmentsApi = {
+  queue: () => apiFetch<{ queue: AssessmentQueueItemDto[] }>('/assessments/queue'),
+  get: (projectId: string) =>
+    apiFetch<{ assessment: AssessmentDetailDto }>(`/assessments/${projectId}`),
+  start: (projectId: string) =>
+    apiFetch<{ project: ProjectDto }>(`/assessments/${projectId}/start`, {
+      method: 'POST',
+      body: {},
+    }),
+  requestClarification: (projectId: string, message: string) =>
+    apiFetch<{ project: ProjectDto }>(`/assessments/${projectId}/clarification`, {
+      method: 'POST',
+      body: { message },
+    }),
+  decide: (projectId: string, body: DecisionBody) =>
+    apiFetch<{ project: ProjectDto }>(`/assessments/${projectId}/decision`, {
+      method: 'POST',
+      body,
+    }),
+  fileUrl: (projectId: string, evidenceId: string) =>
+    `/api/v1/assessments/${projectId}/evidence/${evidenceId}/file`,
 };
 
 /** Turns any error into a friendly sentence. Never shows raw server details. */

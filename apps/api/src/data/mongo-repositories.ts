@@ -1,5 +1,6 @@
 import { Types, trusted } from 'mongoose';
-import type { OrganizationRole, PlatformRole } from '@impactalign/types';
+import type { ProjectStatus } from '@impactalign/types';
+import type { OrganizationRole, PlatformRole, ReviewNoteKind } from '@impactalign/types';
 import {
   AuditLog,
   EmailVerification,
@@ -7,11 +8,14 @@ import {
   Organization,
   OrganizationMember,
   PasswordResetToken,
+  Project,        
   Session,
   User,
   SDG,
   SDGTarget,
   SDGIndicator,
+  Evidence,
+  ReviewNote,
 } from '@impactalign/database';
 import {
   DuplicateEmailError,
@@ -19,13 +23,15 @@ import {
   type MemberRecord,
   type OneTimeTokenRecord,
   type OrganizationRecord,
+  type ProjectRecord, 
   type Repositories,
   type SessionRecord,
   type UserRecord,
   type SdgRecord,
   type SdgTargetRecord,
   type SdgIndicatorRecord,
-
+  type EvidenceRecord,
+  type ReviewNoteRecord,
 } from './repositories';
 
 /** Strict check: 24 hex chars that round-trip (rejects 12-character strings Mongoose would accept). */
@@ -44,6 +50,7 @@ interface LeanUser {
   emailVerifiedAt?: Date | null;
   createdAt: Date;
 }
+
 interface LeanSession {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -56,17 +63,20 @@ interface LeanSession {
   ipAddress?: string | null;
   userAgent?: string | null;
 }
+
 interface LeanOrganization {
   _id: Types.ObjectId;
   name: string;
   slug: string;
   createdAt: Date;
 }
+
 interface LeanMember {
   organizationId: Types.ObjectId;
   userId: Types.ObjectId;
   role: string;
 }
+
 interface LeanToken {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -111,6 +121,74 @@ interface LeanSdgIndicator {
   createdAt: Date;
   updatedAt: Date;
 }
+
+interface LeanProject {
+  _id: Types.ObjectId;
+  ownerId: Types.ObjectId;
+  title: string;
+  summary?: string | null;
+  sdgNumbers?: number[];
+  createdAt: Date;
+  updatedAt: Date;
+  status: string;
+  submittedAt?: Date | null;
+  reviewerId?: Types.ObjectId | null;
+}
+
+const toProject = (d: LeanProject): ProjectRecord => ({
+  id: d._id.toHexString(),
+  ownerId: d.ownerId.toHexString(),
+  title: d.title,
+  summary: d.summary ?? '',
+  sdgNumbers: d.sdgNumbers ?? [],
+  status: d.status as ProjectStatus,
+  reviewerId: d.reviewerId?.toHexString() ?? null,
+  createdAt: d.createdAt,
+  updatedAt: d.updatedAt,
+  submittedAt: d.submittedAt ?? null,
+});
+
+interface LeanEvidence {
+  _id: Types.ObjectId;
+  projectId: Types.ObjectId;
+  ownerId: Types.ObjectId;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  sha256: string;
+  storageKey: string;
+  createdAt: Date;
+}
+
+const toEvidence = (d: LeanEvidence): EvidenceRecord => ({
+  id: d._id.toHexString(),
+  projectId: d.projectId.toHexString(),
+  ownerId: d.ownerId.toHexString(),
+  originalName: d.originalName,
+  mimeType: d.mimeType,
+  sizeBytes: d.sizeBytes,
+  sha256: d.sha256,
+  storageKey: d.storageKey,
+  createdAt: d.createdAt,
+});
+
+interface LeanReviewNote {
+  _id: Types.ObjectId;
+  projectId: Types.ObjectId;
+  authorId: Types.ObjectId;
+  kind: string;
+  message: string;
+  createdAt: Date;
+}
+
+const toReviewNote = (d: LeanReviewNote): ReviewNoteRecord => ({
+  id: d._id.toHexString(),
+  projectId: d.projectId.toHexString(),
+  authorId: d.authorId.toHexString(),
+  kind: d.kind as ReviewNoteKind,
+  message: d.message,
+  createdAt: d.createdAt,
+});
 
 const toUser = (d: LeanUser): UserRecord => ({
   id: d._id.toHexString(),
@@ -438,5 +516,109 @@ export function createMongoRepositories(): Repositories {
         return docs.map(toSdgIndicator);
       },
     },
+    projects: {
+      async create(data) {
+        const doc = await Project.create({ ...data, ownerId: new Types.ObjectId(data.ownerId) });
+        return toProject(doc.toObject() as unknown as LeanProject);
+      },
+      async listByOwner(ownerId) {
+        if (!isId(ownerId)) return [];
+        const docs = await Project.find({ ownerId, deletedAt: null })
+          .sort({ createdAt: -1 })
+          .lean<LeanProject[]>();
+        return docs.map(toProject);
+      },
+      async findById(id) {
+        if (!isId(id)) return null;
+        const doc = await Project.findOne({ _id: id, deletedAt: null }).lean<LeanProject>();
+        return doc ? toProject(doc) : null;
+      },
+      async update(id, data) {
+        if (!isId(id)) return null;
+        const doc = await Project.findOneAndUpdate(
+          { _id: id, deletedAt: null },
+          { $set: data },
+          { returnDocument: 'after' },
+        ).lean<LeanProject>();
+        return doc ? toProject(doc) : null;
+      },
+      async softDelete(id) {
+        if (isId(id)) await Project.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
+      },
+      async transition(id, from, to, submittedAt) {
+        if (!isId(id)) return null;
+        const doc = await Project.findOneAndUpdate(
+          { _id: id, deletedAt: null, status: from },
+          { $set: { status: to, submittedAt } },
+          { returnDocument: 'after' },
+        ).lean<LeanProject>();
+        return doc ? toProject(doc) : null;
+      },
+      async listByStatus(statuses) {
+        const docs = await Project.find({
+          status: trusted({ $in: statuses }),
+          deletedAt: null,
+        })
+          .sort({ submittedAt: 1 })
+          .lean<LeanProject[]>();
+        return docs.map(toProject);
+      },
+      async transitionReview(id, from, to, reviewerId) {
+        if (!isId(id)) return null;
+        const doc = await Project.findOneAndUpdate(
+          { _id: id, deletedAt: null, status: from },
+          {
+            $set: {
+              status: to,
+              reviewerId: reviewerId ? new Types.ObjectId(reviewerId) : null,
+            },
+          },
+          { returnDocument: 'after' },
+        ).lean<LeanProject>();
+        return doc ? toProject(doc) : null;
+      },
+    },
+    evidence: {
+      async create(data) {
+        const doc = await Evidence.create({
+          ...data,
+          projectId: new Types.ObjectId(data.projectId),
+          ownerId: new Types.ObjectId(data.ownerId),
+        });
+        return toEvidence(doc.toObject() as unknown as LeanEvidence);
+      },
+      async listByProject(projectId) {
+        if (!isId(projectId)) return [];
+        const docs = await Evidence.find({ projectId, deletedAt: null })
+          .sort({ createdAt: -1 })
+          .lean<LeanEvidence[]>();
+        return docs.map(toEvidence);
+      },
+      async findById(id) {
+        if (!isId(id)) return null;
+        const doc = await Evidence.findOne({ _id: id, deletedAt: null }).lean<LeanEvidence>();
+        return doc ? toEvidence(doc) : null;
+      },
+      async softDelete(id) {
+        if (isId(id)) await Evidence.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
+      },
+    },
+    reviewNotes: {
+      async create(data) {
+        const doc = await ReviewNote.create({
+          ...data,
+          projectId: new Types.ObjectId(data.projectId),
+          authorId: new Types.ObjectId(data.authorId),
+        });
+        return toReviewNote(doc.toObject() as unknown as LeanReviewNote);
+      },
+      async listByProject(projectId) {
+        if (!isId(projectId)) return [];
+        const docs = await ReviewNote.find({ projectId })
+          .sort({ createdAt: 1 })
+          .lean<LeanReviewNote[]>();
+        return docs.map(toReviewNote);
+      },
+    },   
   };
 }

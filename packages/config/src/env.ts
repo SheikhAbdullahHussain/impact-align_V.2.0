@@ -40,6 +40,8 @@ export const apiEnvSchema = z
     AUTH_LOCKOUT_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
     /** Per-IP limit for credential endpoints (login, register, forgot/reset password). */
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
+        /** Directory for private evidence files (local disk). Use object storage in production. */
+        UPLOAD_DIR: z.string().min(1).default('./storage/uploads'),
     HEALTH_CHECK_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(2_000),
     MONGODB_URI: z
       .string()

@@ -74,7 +74,7 @@ const sdgIndicatorSchema = new Schema(
 );
 
 sdgIndicatorSchema.index({ sdgId: 1, code: 1 }, { unique: true });
-sdgIndicatorSchema.index({ targetId: 1 });
+// sdgIndicatorSchema.index({ targetId: 1 });
 sdgIndicatorSchema.index({ deletedAt: 1 });
 
 export type SDGDocument = InferSchemaType<typeof sdgSchema>;

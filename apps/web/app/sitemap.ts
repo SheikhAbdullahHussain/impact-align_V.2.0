@@ -4,9 +4,16 @@ import { siteUrl } from '@/lib/site-url';
 import { allTopicPaths } from '@/lib/topics';
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // const paths = [
+  //   ...publicNav.map((i) => i.href),
+  //   joinNav.href,
+  //   ...legalPages.map((p) => `/${p.slug}`),
+  //   ...allTopicPaths,
+  // ];
   const paths = [
     ...publicNav.map((i) => i.href),
     joinNav.href,
+    '/accreditation/faqs',
     ...legalPages.map((p) => `/${p.slug}`),
     ...allTopicPaths,
   ];
