@@ -10,6 +10,9 @@ import { ProjectsService } from './projects/projects.service';
 import { EvidenceService } from './evidence/evidence.service';
 import { MemoryFileStorage } from './testing/memory-storage';
 import { AssessmentsService } from './assessments/assessments.service';
+import { ReportsService } from './reports/reports.service';
+import { CertificatesService } from './certificates/certificates.service';
+import { ContentService } from './content/content.service';
 
 export const testEnv = (overrides: Record<string, string> = {}): ApiEnv =>
   parseApiEnv({
@@ -49,6 +52,9 @@ export function buildTestContext(
     projects: new ProjectsService({ repos: t.repos, audit: t.audit }),
     evidence: new EvidenceService({ repos: t.repos, audit: t.audit, storage }),
     assessments: new AssessmentsService({ repos: t.repos, audit: t.audit, storage }),
+    reports: new ReportsService({ repos: t.repos }),
+    certificates: new CertificatesService({ repos: t.repos, audit: t.audit }),
+    content: new ContentService({ repos: t.repos, audit: t.audit }),
   };
 
   const app = createApp({ env, logger, healthService, services });

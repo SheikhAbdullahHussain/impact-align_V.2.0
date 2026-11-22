@@ -1,12 +1,24 @@
 import express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
-import type { SdgIndicatorRecord, SdgRecord, SdgRepository, SdgTargetRecord } from '../data/repositories';
+import type {
+  SdgIndicatorRecord,
+  SdgRecord,
+  SdgRepository,
+  SdgTargetRecord,
+} from '../data/repositories';
 import { createSdgsRouter } from './sdgs.router';
 import { SdgsService } from './sdgs.service';
 
 const now = new Date('2026-01-01T00:00:00Z');
-const base = { title: null, description: null, officialUrl: null, metadata: null, createdAt: now, updatedAt: now };
+const base = {
+  title: null,
+  description: null,
+  officialUrl: null,
+  metadata: null,
+  createdAt: now,
+  updatedAt: now,
+};
 
 const sdgs: SdgRecord[] = Array.from({ length: 17 }, (_, i) => ({
   ...base,
@@ -24,6 +36,8 @@ const repo: SdgRepository = {
   findSDGByNumber: async (n) => sdgs.find((s) => s.number === n) ?? null,
   listTargetsBySdgId: async (id) => targets.filter((t) => t.sdgId === id),
   listIndicatorsBySdgId: async (id) => indicators.filter((i) => i.sdgId === id),
+  findTargetsByIds: async (ids) => targets.filter((t) => ids.includes(t.id)),
+  findIndicatorsByIds: async (ids) => indicators.filter((i) => ids.includes(i.id)),
 };
 
 const app = express();

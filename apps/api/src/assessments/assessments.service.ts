@@ -20,6 +20,8 @@ import type {
 } from '../data/repositories';
 import { toDto as toEvidenceDto } from '../evidence/evidence.service';
 import { toProjectDto } from '../projects/projects.service';
+import { ensureReport } from '../reports/reports.service';
+import { ensureCertificate } from '../certificates/certificates.service';
 import type { FileStorage } from '../storage/file-storage';
 
 const ID_PATTERN = /^[a-f\d]{24}$/i;
@@ -144,6 +146,15 @@ export class AssessmentsService {
       message: rationale,
     });
     await this.audit(AuditEvent.DECISION_MADE, actor, project.id, ctx, { decision });
+    try {
+      const report = await ensureReport(repos, updated);
+      if (report) await this.audit(AuditEvent.REPORT_GENERATED, actor, project.id, ctx);
+      if (updated.status === 'VERIFIED' && (await ensureCertificate(repos, updated))) {
+        await this.audit(AuditEvent.CERTIFICATE_ISSUED, actor, project.id, ctx);
+      }
+    } catch {
+      // Decision is already saved; the owner's first read creates the report lazily.
+    }
     return toProjectDto(updated);
   }
 
@@ -197,7 +208,9 @@ export class AssessmentsService {
     action:
       | typeof AuditEvent.ASSESSMENT_STARTED
       | typeof AuditEvent.CLARIFICATION_REQUESTED
-      | typeof AuditEvent.DECISION_MADE,
+      | typeof AuditEvent.DECISION_MADE
+      | typeof AuditEvent.REPORT_GENERATED
+      | typeof AuditEvent.CERTIFICATE_ISSUED,
     actor: UserRecord,
     projectId: string,
     ctx: RequestContext,

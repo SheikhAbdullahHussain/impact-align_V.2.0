@@ -1,5 +1,5 @@
 import { Types, trusted } from 'mongoose';
-import type { ProjectStatus } from '@impactalign/types';
+import type { ProjectStatus, SubmissionType } from '@impactalign/types';
 import type { OrganizationRole, PlatformRole, ReviewNoteKind } from '@impactalign/types';
 import {
   AuditLog,
@@ -8,7 +8,7 @@ import {
   Organization,
   OrganizationMember,
   PasswordResetToken,
-  Project,        
+  Project,
   Session,
   User,
   SDG,
@@ -18,12 +18,13 @@ import {
   ReviewNote,
 } from '@impactalign/database';
 import {
+  DuplicateCodeError,
   DuplicateEmailError,
   type OneTimeTokenKind,
   type MemberRecord,
   type OneTimeTokenRecord,
   type OrganizationRecord,
-  type ProjectRecord, 
+  type ProjectRecord,
   type Repositories,
   type SessionRecord,
   type UserRecord,
@@ -33,6 +34,9 @@ import {
   type EvidenceRecord,
   type ReviewNoteRecord,
 } from './repositories';
+import { MongoReportRepository } from './mongo-report-repository';
+import { MongoCertificateRepository } from './mongo-certificate-repository';
+import { MongoContentRepository } from './mongo-content-repository';
 
 /** Strict check: 24 hex chars that round-trip (rejects 12-character strings Mongoose would accept). */
 const isId = (id: string): boolean =>
@@ -133,6 +137,11 @@ interface LeanProject {
   status: string;
   submittedAt?: Date | null;
   reviewerId?: Types.ObjectId | null;
+  submissionType?: string;
+  organizationId?: Types.ObjectId | null;
+  code?: string | null;
+  targetIds?: Types.ObjectId[];
+  indicatorIds?: Types.ObjectId[];
 }
 
 const toProject = (d: LeanProject): ProjectRecord => ({
@@ -143,6 +152,11 @@ const toProject = (d: LeanProject): ProjectRecord => ({
   sdgNumbers: d.sdgNumbers ?? [],
   status: d.status as ProjectStatus,
   reviewerId: d.reviewerId?.toHexString() ?? null,
+  submissionType: (d.submissionType ?? 'PROJECT_PROPOSAL') as SubmissionType,
+  organizationId: d.organizationId?.toHexString() ?? null,
+  code: d.code ?? null,
+  targetIds: (d.targetIds ?? []).map((value) => value.toHexString()),
+  indicatorIds: (d.indicatorIds ?? []).map((value) => value.toHexString()),
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,
   submittedAt: d.submittedAt ?? null,
@@ -157,6 +171,7 @@ interface LeanEvidence {
   sizeBytes: number;
   sha256: string;
   storageKey: string;
+  indicatorId?: Types.ObjectId | null;
   createdAt: Date;
 }
 
@@ -169,6 +184,7 @@ const toEvidence = (d: LeanEvidence): EvidenceRecord => ({
   sizeBytes: d.sizeBytes,
   sha256: d.sha256,
   storageKey: d.storageKey,
+  indicatorId: d.indicatorId?.toHexString() ?? null,
   createdAt: d.createdAt,
 });
 
@@ -474,9 +490,7 @@ export function createMongoRepositories(): Repositories {
     },
     sdgs: {
       async listSDGs() {
-        const docs = await SDG.find({ deletedAt: null })
-          .sort({ number: 1 })
-          .lean<LeanSdg[]>();
+        const docs = await SDG.find({ deletedAt: null }).sort({ number: 1 }).lean<LeanSdg[]>();
 
         return docs.map(toSdg);
       },
@@ -502,6 +516,25 @@ export function createMongoRepositories(): Repositories {
 
         return docs.map(toSdgTarget);
       },
+      async findTargetsByIds(ids) {
+        const valid = ids.filter(isId);
+        if (valid.length === 0) return [];
+        const docs = await SDGTarget.find({
+          _id: trusted({ $in: valid.map((value) => new Types.ObjectId(value)) }),
+          deletedAt: null,
+        }).lean<LeanSdgTarget[]>();
+        return docs.map(toSdgTarget);
+      },
+
+      async findIndicatorsByIds(ids) {
+        const valid = ids.filter(isId);
+        if (valid.length === 0) return [];
+        const docs = await SDGIndicator.find({
+          _id: trusted({ $in: valid.map((value) => new Types.ObjectId(value)) }),
+          deletedAt: null,
+        }).lean<LeanSdgIndicator[]>();
+        return docs.map(toSdgIndicator);
+      },
 
       async listIndicatorsBySdgId(sdgId) {
         if (!isId(sdgId)) return [];
@@ -518,7 +551,11 @@ export function createMongoRepositories(): Repositories {
     },
     projects: {
       async create(data) {
-        const doc = await Project.create({ ...data, ownerId: new Types.ObjectId(data.ownerId) });
+        const doc = await Project.create({
+          ...data,
+          ownerId: new Types.ObjectId(data.ownerId),
+          organizationId: optionalId(data.organizationId),
+        });
         return toProject(doc.toObject() as unknown as LeanProject);
       },
       async listByOwner(ownerId) {
@@ -537,13 +574,43 @@ export function createMongoRepositories(): Repositories {
         if (!isId(id)) return null;
         const doc = await Project.findOneAndUpdate(
           { _id: id, deletedAt: null },
-          { $set: data },
+          { $set: { ...data, organizationId: optionalId(data.organizationId) } },
           { returnDocument: 'after' },
         ).lean<LeanProject>();
         return doc ? toProject(doc) : null;
       },
       async softDelete(id) {
         if (isId(id)) await Project.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
+      },
+      async setAlignment(id, targetIds, indicatorIds) {
+        if (!isId(id)) return null;
+        const doc = await Project.findOneAndUpdate(
+          { _id: id, deletedAt: null },
+          {
+            $set: {
+              targetIds: targetIds.map((value) => new Types.ObjectId(value)),
+              indicatorIds: indicatorIds.map((value) => new Types.ObjectId(value)),
+            },
+          },
+          { returnDocument: 'after' },
+        ).lean<LeanProject>();
+        return doc ? toProject(doc) : null;
+      },
+      async assignCode(id, code) {
+        if (!isId(id)) return null;
+
+        try {
+          const doc = await Project.findOneAndUpdate(
+            { _id: id, deletedAt: null, code: null },
+            { $set: { code } },
+            { returnDocument: 'after' },
+          ).lean<LeanProject>();
+
+          return doc ? toProject(doc) : null;
+        } catch (err) {
+          if (isDuplicateKey(err)) throw new DuplicateCodeError();
+          throw err;
+        }
       },
       async transition(id, from, to, submittedAt) {
         if (!isId(id)) return null;
@@ -602,7 +669,27 @@ export function createMongoRepositories(): Repositories {
       async softDelete(id) {
         if (isId(id)) await Evidence.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
       },
+      async setIndicator(id, indicatorId) {
+        if (!isId(id)) return null;
+        const doc = await Evidence.findOneAndUpdate(
+          { _id: id, deletedAt: null },
+          { $set: { indicatorId: optionalId(indicatorId) } },
+          { returnDocument: 'after' },
+        ).lean<LeanEvidence>();
+        return doc ? toEvidence(doc) : null;
+      },
+      async unlinkExcept(projectId, keepIndicatorIds) {
+        if (!isId(projectId)) return;
+        const keep = keepIndicatorIds.filter(isId).map((value) => new Types.ObjectId(value));
+        await Evidence.updateMany(
+          { projectId, deletedAt: null, indicatorId: trusted({ $nin: keep, $ne: null }) },
+          { $set: { indicatorId: null } },
+        );
+      },
     },
+    reports: new MongoReportRepository(),
+    certificates: new MongoCertificateRepository(),
+    content: new MongoContentRepository(),
     reviewNotes: {
       async create(data) {
         const doc = await ReviewNote.create({
@@ -619,6 +706,6 @@ export function createMongoRepositories(): Repositories {
           .lean<LeanReviewNote[]>();
         return docs.map(toReviewNote);
       },
-    },   
+    },
   };
 }

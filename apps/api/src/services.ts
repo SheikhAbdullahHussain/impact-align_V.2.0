@@ -1,4 +1,3 @@
-
 import { createScryptHasher, type PasswordHasher } from '@impactalign/auth';
 import type { ApiEnv } from '@impactalign/config';
 
@@ -15,7 +14,9 @@ import { SdgsService } from './sdgs/sdgs.service';
 import { ProjectsService } from './projects/projects.service';
 import { EvidenceService } from './evidence/evidence.service';
 import { AssessmentsService } from './assessments/assessments.service';
-
+import { ReportsService } from './reports/reports.service';
+import { CertificatesService } from './certificates/certificates.service';
+import { ContentService } from './content/content.service';
 import path from 'node:path';
 import { LocalFileStorage, type FileStorage } from './storage/file-storage';
 
@@ -29,6 +30,9 @@ export interface Services {
   projects: ProjectsService;
   evidence: EvidenceService;
   assessments: AssessmentsService;
+  reports: ReportsService;
+  certificates: CertificatesService;
+  content: ContentService;
 }
 
 export function authOptionsFromEnv(env: ApiEnv): AuthServiceOptions {
@@ -67,9 +71,7 @@ export function createServices(deps: ServiceDeps): Services {
     options: authOptionsFromEnv(deps.env),
   });
 
-  const storage =
-    deps.storage ??
-    new LocalFileStorage(path.resolve(deps.env.UPLOAD_DIR));
+  const storage = deps.storage ?? new LocalFileStorage(path.resolve(deps.env.UPLOAD_DIR));
 
   return {
     auth,
@@ -87,6 +89,14 @@ export function createServices(deps: ServiceDeps): Services {
       storage,
     }),
 
+    reports: new ReportsService({ repos: deps.repos }),
+    content: new ContentService({ repos: deps.repos, audit }),
+    certificates: new CertificatesService({
+      repos: deps.repos,
+      audit,
+      ...(deps.clock ? { clock: deps.clock } : {}),
+      webUrl: deps.env.APP_WEB_URL.replace(/\/$/, ''),
+    }),
     assessments: new AssessmentsService({
       repos: deps.repos,
       audit,

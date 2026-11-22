@@ -6,18 +6,27 @@ dist/
 out/
 coverage/
 *.tsbuildinfo
+
 # env — never commit real secrets
 .env
 .env.*
 !.env.example
+
 # logs / OS / editor
 *.log
 npm-debug.log*
 .DS_Store
 .idea/
+
 .vscode/*
 !.vscode/extensions.json
+
 # local data
 .data/
 *.pem
 *.key
+
+# Test files
+o2-typecheck.txt
+dump-9a.txt
+o2-build.txt

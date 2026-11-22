@@ -10,7 +10,10 @@ import { createSdgsRouter } from './sdgs/sdgs.router';
 import { createProjectsRouter } from './projects/projects.router';
 import { createEvidenceRouter } from './evidence/evidence.router';
 import { createAssessmentsRouter, createFeedbackRouter } from './assessments/assessments.router';
-
+import { createReportsRouter } from './reports/reports.router';
+import { createCertificatesRouter } from './certificates/certificates.router';
+import { createVerifyRouter } from './certificates/verify.router';
+import { createAdminContentRouter, createContentRouter } from './content/content.router';
 
 /** Everything under /api/v1. Order matters: origin → JSON → session → CSRF → routes. */
 export function createApiRouter(env: ApiEnv, services: Services): Router {
@@ -23,7 +26,6 @@ export function createApiRouter(env: ApiEnv, services: Services): Router {
   router.use(authenticate(services.auth, services.cookie));
   router.use(csrfGuard);
 
-
   router.use(
     '/auth',
     createAuthRouter({ auth: services.auth, cookie: services.cookie, limiter: authLimiter }),
@@ -35,6 +37,11 @@ export function createApiRouter(env: ApiEnv, services: Services): Router {
   router.use('/projects', createEvidenceRouter(services.evidence));
   router.use('/projects', createFeedbackRouter(services.assessments));
   router.use('/assessments', createAssessmentsRouter(services.assessments));
+  router.use('/reports', createReportsRouter(services.reports));
+  router.use('/certificates', createCertificatesRouter(services.certificates));
+  router.use('/verify', createVerifyRouter(services.certificates));
+  router.use('/content', createContentRouter(services.content));
+  router.use('/admin/content', createAdminContentRouter(services.content));
 
   return router;
 }

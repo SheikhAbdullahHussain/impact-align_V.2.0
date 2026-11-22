@@ -26,6 +26,7 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
   const [message, setMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [declared, setDeclared] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
     setBusy(true);
     try {
       const result = await (action === 'submit'
-        ? projectsApi.submit(projectId)
+        ? projectsApi.submit(projectId, declared)
         : projectsApi.withdraw(projectId));
       setProject(result.project);
       setMessage(action === 'submit' ? 'Project submitted.' : 'Project moved back to drafts.');
@@ -137,7 +138,10 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
     <div className="space-y-8">
       <header>
         <p className="text-sm">
-          <Link href="/dashboard/projects" className="font-semibold text-navy-900 underline underline-offset-4">
+          <Link
+            href="/dashboard/projects"
+            className="font-semibold text-navy-900 underline underline-offset-4"
+          >
             ← Projects
           </Link>
         </p>
@@ -145,18 +149,28 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
           <h1 className="font-serif text-3xl font-bold text-navy-900">
             {project ? project.title : 'Project evidence'}
           </h1>
-          {project && <Badge tone={isDraft ? 'neutral' : 'gold'}>{STATUS_LABELS[project.status]}</Badge>}
+          {project && (
+            <Badge tone={isDraft ? 'neutral' : 'gold'}>{STATUS_LABELS[project.status]}</Badge>
+          )}
         </div>
-        <p className="mt-2 text-navy-800">Upload files that support this project&apos;s SDG claims.</p>
+        <p className="mt-2 text-navy-800">
+          Upload files that support this project&apos;s SDG claims.
+        </p>
       </header>
 
       {error && (
-        <p role="alert" className="rounded-md border border-red-700 bg-red-50 p-3 text-sm text-red-900">
+        <p
+          role="alert"
+          className="rounded-md border border-red-700 bg-red-50 p-3 text-sm text-red-900"
+        >
           {error}
         </p>
       )}
       {message && (
-        <p role="status" className="rounded-md border border-teal-700 bg-teal-50 p-3 text-sm text-teal-900">
+        <p
+          role="status"
+          className="rounded-md border border-teal-700 bg-teal-50 p-3 text-sm text-teal-900"
+        >
           {message}
         </p>
       )}
@@ -179,19 +193,35 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
                       key={n}
                       className="flex cursor-pointer items-center gap-1.5 rounded-full border border-navy-200 bg-white px-3 py-1 text-sm"
                     >
-                      <input type="checkbox" checked={sdgs.includes(n)} onChange={() => toggleSdg(n)} />
+                      <input
+                        type="checkbox"
+                        checked={sdgs.includes(n)}
+                        onChange={() => toggleSdg(n)}
+                      />
                       SDG {n}
                     </label>
                   ))}
                 </div>
               </fieldset>
               <div className="mt-4 flex flex-wrap gap-2">
+                <label className="flex basis-full items-start gap-2 text-sm text-navy-900">
+                  <input
+                    type="checkbox"
+                    checked={declared}
+                    onChange={(event) => setDeclared(event.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>
+                    I declare that the information and evidence I submit are accurate and that I am
+                    entitled to share them with ImpactAlign for assessment.
+                  </span>
+                </label>
                 <Button type="button" variant="outline" disabled={busy} onClick={saveSdgs}>
                   Save SDGs
                 </Button>
                 <Button
                   type="button"
-                  disabled={busy || !hasSdgs || !hasEvidence}
+                  disabled={busy || !hasSdgs || !hasEvidence || !declared}
                   onClick={() => changeStatus('submit')}
                 >
                   Submit project
@@ -203,8 +233,11 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
           {project.status === 'SUBMITTED' && (
             <div className="mt-4">
               <p className="text-sm text-navy-800">
-                Submitted{project.submittedAt ? ` on ${new Date(project.submittedAt).toLocaleDateString()}` : ''}.
-                The project is locked while it waits for review.
+                Submitted
+                {project.submittedAt
+                  ? ` on ${new Date(project.submittedAt).toLocaleDateString()}`
+                  : ''}
+                . The project is locked while it waits for review.
               </p>
               <Button
                 type="button"
@@ -219,7 +252,9 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
           )}
 
           {!isDraft && project.status !== 'SUBMITTED' && (
-            <p className="mt-4 text-sm text-navy-800">This project is locked while it is being reviewed.</p>
+            <p className="mt-4 text-sm text-navy-800">
+              This project is locked while it is being reviewed.
+            </p>
           )}
         </Card>
       )}
@@ -269,7 +304,12 @@ export function EvidenceManager({ projectId }: { readonly projectId: string }) {
                     <a href={evidenceApi.fileUrl(projectId, item.id)}>Download</a>
                   </Button>
                   {isDraft && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => remove(item.id)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => remove(item.id)}
+                    >
                       Delete
                     </Button>
                   )}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Permission } from '@impactalign/types';
-import { projectInputSchema } from '@impactalign/validation';
+import { alignmentInputSchema, projectInputSchema, submitSchema } from '@impactalign/validation';
 import { requestContext, requireAuth, requirePermission } from '../auth/middleware';
 import { validateBody } from '../common/validate';
 import type { ProjectsService } from './projects.service';
@@ -42,15 +42,31 @@ export function createProjectsRouter(projects: ProjectsService): Router {
     res.status(204).end();
   });
 
-  router.post('/:id/submit', requirePermission(Permission.EVIDENCE_SUBMIT), async (req, res) => {
-    res.json({
-      project: await projects.submit(
-        req.auth!.user,
-        String(req.params['id']),
-        requestContext(req),
-      ),
-    });
-  });
+  router.put(
+    '/:id/alignment',
+    requirePermission(Permission.PROJECT_UPDATE),
+    validateBody(alignmentInputSchema),
+    async (req, res) => {
+      res.json({
+        project: await projects.setAlignment(req.auth!.user, String(req.params['id']), req.body),
+      });
+    },
+  );
+
+  router.post(
+    '/:id/submit',
+    requirePermission(Permission.EVIDENCE_SUBMIT),
+    validateBody(submitSchema),
+    async (req, res) => {
+      res.json({
+        project: await projects.submit(
+          req.auth!.user,
+          String(req.params['id']),
+          requestContext(req),
+        ),
+      });
+    },
+  );
 
   router.post('/:id/withdraw', requirePermission(Permission.EVIDENCE_SUBMIT), async (req, res) => {
     res.json({

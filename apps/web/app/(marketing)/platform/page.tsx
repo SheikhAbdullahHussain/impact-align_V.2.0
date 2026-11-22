@@ -1,8 +1,8 @@
-import { SectionPage } from '@/components/marketing/section-page';
+import { LiveSectionPage } from '@/components/marketing/section-page-live';
 import { sectionMetadata } from '@/lib/section-metadata';
 
 export const metadata = sectionMetadata('platform');
 
 export default function Page() {
-  return <SectionPage slug="platform" />;
+  return <LiveSectionPage slug="platform" />;
 }

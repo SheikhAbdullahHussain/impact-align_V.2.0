@@ -3,7 +3,9 @@ import { Container } from '@impactalign/ui';
 import { CtaBanner } from '@/components/marketing/cta-banner';
 import { FaqList } from '@/components/marketing/faq-list';
 import { PageHero } from '@/components/marketing/page-hero';
+import type { FaqContentDto } from '@impactalign/types';
 import { faqGroups } from '@/lib/faq-content';
+import { getPublishedContent } from '@/lib/site-content';
 
 export const metadata: Metadata = {
   title: 'Accreditation FAQs',
@@ -14,7 +16,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AccreditationFaqsPage() {
+export default async function AccreditationFaqsPage() {
+  const published = await getPublishedContent<FaqContentDto>('faq', 'accreditation');
+  const groups = published?.groups ?? faqGroups;
   return (
     <>
       <PageHero
@@ -28,7 +32,7 @@ export default function AccreditationFaqsPage() {
         ]}
       />
       <Container className="max-w-4xl py-12 md:py-16">
-        <FaqList groups={faqGroups} />
+        <FaqList groups={groups} />
         <p
           role="note"
           className="mt-12 rounded-md border border-gold-500 bg-gold-50 p-4 text-sm leading-6 text-navy-900"

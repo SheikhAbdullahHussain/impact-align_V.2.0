@@ -8,6 +8,19 @@ import type {
   AssessmentDetailDto,
   AssessmentQueueItemDto,
   ReviewNoteDto,
+  AssessmentReportDto,
+  CertificateDto,
+  PublicVerificationDto,
+  FaqEntryDto,
+  FaqContentDto,
+  ContentStatus,
+  ContentEntryDto,
+  ContentListItemDto,
+  PublicOrganization,
+  SdgDto,
+  SdgIndicatorDto,
+  SdgTargetDto,
+  SubmissionType,
 } from '@impactalign/types';
 /** Error returned by the API (or a network failure, status 0). Messages are safe to show to users. */
 export class ApiError extends Error {
@@ -99,7 +112,7 @@ export const authApi = {
     setCsrfToken(null);
   },
   updateProfile: (displayName: string) =>
-   apiFetch<{ user: PublicUser }>('/users/me', {
+    apiFetch<{ user: PublicUser }>('/users/me', {
       method: 'PATCH',
       body: { displayName },
     }),
@@ -113,6 +126,8 @@ export const authApi = {
 };
 
 export interface ProjectBody {
+  submissionType?: SubmissionType | undefined;
+  organizationId?: string | null | undefined;
   title: string;
   summary: string;
   sdgNumbers: number[];
@@ -126,11 +141,28 @@ export const projectsApi = {
   get: (id: string) => apiFetch<{ project: ProjectDto }>(`/projects/${id}`),
   update: (id: string, body: ProjectBody) =>
     apiFetch<{ project: ProjectDto }>(`/projects/${id}`, { method: 'PUT', body }),
-  submit: (id: string) =>
-    apiFetch<{ project: ProjectDto }>(`/projects/${id}/submit`, { method: 'POST', body: {} }),
+  submit: (id: string, declaration: boolean) =>
+    apiFetch<{ project: ProjectDto }>(`/projects/${id}/submit`, {
+      method: 'POST',
+      body: { declaration },
+    }),
   withdraw: (id: string) =>
     apiFetch<{ project: ProjectDto }>(`/projects/${id}/withdraw`, { method: 'POST', body: {} }),
   feedback: (id: string) => apiFetch<{ notes: ReviewNoteDto[] }>(`/projects/${id}/feedback`),
+  setAlignment: (id: string, body: { targetIds: string[]; indicatorIds: string[] }) =>
+    apiFetch<{ project: ProjectDto }>(`/projects/${id}/alignment`, { method: 'PUT', body }),
+};
+
+export const organizationsApi = {
+  list: () => apiFetch<{ organizations: PublicOrganization[] }>('/organizations'),
+};
+
+/** Public, read-only SDG catalogue (goals, targets, indicators). */
+export const sdgsApi = {
+  list: () => apiFetch<{ data: SdgDto[] }>('/sdgs'),
+  targets: (number: number) => apiFetch<{ data: SdgTargetDto[] }>(`/sdgs/${number}/targets`),
+  indicators: (number: number) =>
+    apiFetch<{ data: SdgIndicatorDto[] }>(`/sdgs/${number}/indicators`),
 };
 
 /** Uploads one file as the raw request body (the API reads the name from X-File-Name). */
@@ -177,6 +209,11 @@ export const evidenceApi = {
     apiUpload<{ evidence: EvidenceDto }>(`/projects/${projectId}/evidence`, file),
   remove: (projectId: string, evidenceId: string) =>
     apiFetch<void>(`/projects/${projectId}/evidence/${evidenceId}`, { method: 'DELETE' }),
+  linkIndicator: (projectId: string, evidenceId: string, indicatorId: string | null) =>
+    apiFetch<{ evidence: EvidenceDto }>(`/projects/${projectId}/evidence/${evidenceId}/indicator`, {
+      method: 'PUT',
+      body: { indicatorId },
+    }),
   fileUrl: (projectId: string, evidenceId: string) =>
     `/api/v1/projects/${projectId}/evidence/${evidenceId}/file`,
 };
@@ -209,6 +246,72 @@ export const assessmentsApi = {
     `/api/v1/assessments/${projectId}/evidence/${evidenceId}/file`,
 };
 
+export const reportsApi = {
+  list: () => apiFetch<{ reports: AssessmentReportDto[] }>('/reports'),
+  get: (projectId: string) => apiFetch<{ report: AssessmentReportDto }>(`/reports/${projectId}`),
+  downloadUrl: (projectId: string) => `/api/v1/reports/${projectId}/download`,
+};
+
+export const certificatesApi = {
+  list: () => apiFetch<{ certificates: CertificateDto[] }>('/certificates'),
+  get: (projectId: string) =>
+    apiFetch<{ certificate: CertificateDto }>(`/certificates/${projectId}`),
+  downloadUrl: (projectId: string) => `/api/v1/certificates/${projectId}/download`,
+  /** ASSESSOR only. */
+  lookup: (code: string) =>
+    apiFetch<{ certificate: CertificateDto }>(`/certificates/lookup/${encodeURIComponent(code)}`),
+  /** ASSESSOR only. The reason stays internal. */
+  revoke: (projectId: string, reason: string) =>
+    apiFetch<{ certificate: CertificateDto }>(`/certificates/${projectId}/revoke`, {
+      method: 'POST',
+      body: { reason },
+    }),
+};
+
+/** Public, no login. */
+export const verifyApi = {
+  get: (code: string) =>
+    apiFetch<{ verification: PublicVerificationDto }>(`/verify/${encodeURIComponent(code)}`),
+};
+
+/** Public, no login: published website content only. */
+export const contentApi = {
+  faq: (key: string) => apiFetch<{ entry: FaqEntryDto }>(`/content/faq/${encodeURIComponent(key)}`),
+};
+
+/** Staff only (ADMIN_ACCESS). */
+export const adminContentApi = {
+  getFaq: (key: string) =>
+    apiFetch<{ entry: FaqEntryDto | null }>(`/admin/content/faq/${encodeURIComponent(key)}`),
+  saveFaq: (key: string, body: { status: ContentStatus; data: FaqContentDto }) =>
+    apiFetch<{ entry: FaqEntryDto }>(`/admin/content/faq/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      body,
+    }),
+};
+
+export type ContentKindParam = 'faq' | 'section' | 'legal' | 'plans';
+
+/** Public, no login: published content of any kind. */
+export const siteContentApi = {
+  get: (kind: ContentKindParam, key: string) =>
+    apiFetch<{ entry: ContentEntryDto }>(`/content/${kind}/${encodeURIComponent(key)}`),
+};
+
+/** Staff only (ADMIN_ACCESS). */
+export const adminSiteContentApi = {
+  list: () => apiFetch<{ items: ContentListItemDto[] }>('/admin/content'),
+  get: (kind: ContentKindParam, key: string) =>
+    apiFetch<{ entry: ContentEntryDto | null }>(
+      `/admin/content/${kind}/${encodeURIComponent(key)}`,
+    ),
+  save: (kind: ContentKindParam, key: string, body: { status: ContentStatus; data: unknown }) =>
+    apiFetch<{ entry: ContentEntryDto }>(`/admin/content/${kind}/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      body,
+    }),
+};
+
 /** Turns any error into a friendly sentence. Never shows raw server details. */
 export function describeError(error: unknown): string {
   if (!(error instanceof ApiError)) return 'Something went wrong. Please try again.';
@@ -228,6 +331,3 @@ export function describeError(error: unknown): string {
       return error.message;
   }
 }
-
-
-// The package is shared by both Next.js applications; keep request semantics in one place.

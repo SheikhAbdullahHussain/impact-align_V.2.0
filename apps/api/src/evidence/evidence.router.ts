@@ -1,7 +1,9 @@
 import express, { Router } from 'express';
 import { Permission } from '@impactalign/types';
 import { requestContext, requireAuth, requirePermission } from '../auth/middleware';
+import { evidenceIndicatorSchema } from '@impactalign/validation';
 import { HttpError } from '../common/http-error';
+import { validateBody } from '../common/validate';
 import type { EvidenceService } from './evidence.service';
 import { MAX_EVIDENCE_BYTES } from './file-validation';
 
@@ -36,9 +38,13 @@ export function createEvidenceRouter(evidence: EvidenceService): Router {
     },
   );
 
-  router.get('/:projectId/evidence', requirePermission(Permission.PROJECT_READ), async (req, res) => {
-    res.json({ evidence: await evidence.list(req.auth!.user, String(req.params['projectId'])) });
-  });
+  router.get(
+    '/:projectId/evidence',
+    requirePermission(Permission.PROJECT_READ),
+    async (req, res) => {
+      res.json({ evidence: await evidence.list(req.auth!.user, String(req.params['projectId'])) });
+    },
+  );
 
   router.get(
     '/:projectId/evidence/:evidenceId/file',
@@ -54,6 +60,22 @@ export function createEvidenceRouter(evidence: EvidenceService): Router {
       res.setHeader('Content-Disposition', `attachment; filename="${record.originalName}"`);
       res.setHeader('Cache-Control', 'private, no-store');
       res.send(data);
+    },
+  );
+
+  router.put(
+    '/:projectId/evidence/:evidenceId/indicator',
+    requirePermission(Permission.EVIDENCE_UPLOAD),
+    validateBody(evidenceIndicatorSchema),
+    async (req, res) => {
+      res.json({
+        evidence: await evidence.linkIndicator(
+          req.auth!.user,
+          String(req.params['projectId']),
+          String(req.params['evidenceId']),
+          req.body.indicatorId,
+        ),
+      });
     },
   );
 

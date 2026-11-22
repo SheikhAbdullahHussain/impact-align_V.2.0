@@ -8,7 +8,9 @@ type Ctx = ReturnType<typeof buildTestContext>;
 async function signIn(t: Ctx, address: string) {
   await t.signUp(address);
   const agent = request.agent(t.app);
-  const res = await agent.post('/api/v1/auth/login').send({ email: address, password: STRONG_PASSWORD });
+  const res = await agent
+    .post('/api/v1/auth/login')
+    .send({ email: address, password: STRONG_PASSWORD });
   return { agent, csrf: res.body.csrfToken as string };
 }
 type Person = Awaited<ReturnType<typeof signIn>>;
@@ -32,7 +34,10 @@ const addEvidence = (p: Person, id: string) =>
     .send(pdf);
 
 const act = (p: Person, id: string, action: 'submit' | 'withdraw') =>
-  p.agent.post(`/api/v1/projects/${id}/${action}`).set('X-CSRF-Token', p.csrf).send({});
+  p.agent
+    .post(`/api/v1/projects/${id}/${action}`)
+    .set('X-CSRF-Token', p.csrf)
+    .send(action === 'submit' ? { declaration: true } : {});
 
 describe('project submission', () => {
   it('refuses to submit without an SDG or without evidence', async () => {
@@ -61,7 +66,12 @@ describe('project submission', () => {
 
     expect((await addEvidence(ada, id)).status).toBe(409);
     expect(
-      (await ada.agent.put(`/api/v1/projects/${id}`).set('X-CSRF-Token', ada.csrf).send({ title: 'Changed title' })).status,
+      (
+        await ada.agent
+          .put(`/api/v1/projects/${id}`)
+          .set('X-CSRF-Token', ada.csrf)
+          .send({ title: 'Changed title' })
+      ).status,
     ).toBe(409);
     expect(
       (await ada.agent.delete(`/api/v1/projects/${id}`).set('X-CSRF-Token', ada.csrf)).status,

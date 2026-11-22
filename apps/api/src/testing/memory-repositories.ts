@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import {
+  DuplicateCodeError,
   DuplicateEmailError,
   type AuditEntry,
   type MembershipRecord,
@@ -16,6 +17,9 @@ import {
   type EvidenceRecord,
   type ReviewNoteRecord,
 } from '../data/repositories';
+import { MemoryReportRepository } from './memory-report-repository';
+import { MemoryCertificateRepository } from './memory-certificate-repository';
+import { MemoryContentRepository } from './memory-content-repository';
 
 /** In-memory repositories for tests. They mimic the atomic behaviour the real adapters must have. */
 export interface MemoryRepositories extends Repositories {
@@ -209,22 +213,24 @@ export function createMemoryRepositories(): MemoryRepositories {
           }));
       },
     },
-
     sdgs: {
       async listSDGs() {
         return [...data.sdgs].sort((a, b) => a.number - b.number);
       },
-
       async findSDGByNumber(number) {
         return data.sdgs.find((sdg) => sdg.number === number) ?? null;
       },
-
       async listTargetsBySdgId(sdgId) {
         return data.sdgTargets
           .filter((target) => target.sdgId === sdgId)
           .sort((a, b) => a.code.localeCompare(b.code));
       },
-
+      async findTargetsByIds(ids) {
+        return data.sdgTargets.filter((target) => ids.includes(target.id));
+      },
+      async findIndicatorsByIds(ids) {
+        return data.sdgIndicators.filter((indicator) => ids.includes(indicator.id));
+      },
       async listIndicatorsBySdgId(sdgId) {
         return data.sdgIndicators
           .filter((indicator) => indicator.sdgId === sdgId)
@@ -237,6 +243,9 @@ export function createMemoryRepositories(): MemoryRepositories {
         const record: ProjectRecord = {
           id: newId(),
           status: 'DRAFT',
+          code: null,
+          targetIds: [],
+          indicatorIds: [],
           submittedAt: null,
           reviewerId: null,
           createdAt: now,
@@ -264,6 +273,24 @@ export function createMemoryRepositories(): MemoryRepositories {
       },
       async softDelete(id) {
         data.projects = data.projects.filter((p) => p.id !== id);
+      },
+      async setAlignment(id, targetIds, indicatorIds) {
+        const found = data.projects.find((p) => p.id === id);
+        if (!found) return null;
+        Object.assign(found, {
+          targetIds: [...targetIds],
+          indicatorIds: [...indicatorIds],
+          updatedAt: new Date(),
+        });
+        return { ...found };
+      },
+      async assignCode(id, code) {
+        const found = data.projects.find((p) => p.id === id);
+        if (!found || found.code) return null;
+        if (data.projects.some((p) => p.code === code)) throw new DuplicateCodeError();
+        found.code = code;
+        found.updatedAt = new Date();
+        return { ...found };
       },
       async transition(id, from, to, submittedAt) {
         const found = data.projects.find((p) => p.id === id && p.status === from);
@@ -303,7 +330,27 @@ export function createMemoryRepositories(): MemoryRepositories {
       async softDelete(id) {
         data.evidence = data.evidence.filter((e) => e.id !== id);
       },
+      async setIndicator(id, indicatorId) {
+        const found = data.evidence.find((e) => e.id === id);
+        if (!found) return null;
+        found.indicatorId = indicatorId;
+        return { ...found };
+      },
+      async unlinkExcept(projectId, keepIndicatorIds) {
+        for (const item of data.evidence) {
+          if (
+            item.projectId === projectId &&
+            item.indicatorId &&
+            !keepIndicatorIds.includes(item.indicatorId)
+          ) {
+            item.indicatorId = null;
+          }
+        }
+      },
     },
+    reports: new MemoryReportRepository(),
+    certificates: new MemoryCertificateRepository(),
+    content: new MemoryContentRepository(),
     reviewNotes: {
       async create(input) {
         const record: ReviewNoteRecord = { id: newId(), createdAt: new Date(), ...input };

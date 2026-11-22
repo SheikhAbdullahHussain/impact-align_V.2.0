@@ -1,8 +1,8 @@
-import { DashboardPage } from '@/components/dashboard/dashboard-page';
+import { ReportsList } from '@/components/dashboard/reports-list';
 import { dashboardMetadata } from '@/lib/dashboard-content';
 
 export const metadata = dashboardMetadata('/dashboard/reports');
 
 export default function Page() {
-  return <DashboardPage href="/dashboard/reports" />;
+  return <ReportsList />;
 }

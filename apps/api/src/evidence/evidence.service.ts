@@ -16,6 +16,7 @@ export const toDto = (e: EvidenceRecord): EvidenceDto => ({
   mimeType: e.mimeType,
   sizeBytes: e.sizeBytes,
   sha256: e.sha256,
+  indicatorId: e.indicatorId,
   createdAt: e.createdAt.toISOString(),
 });
 
@@ -49,6 +50,7 @@ export class EvidenceService {
         mimeType: check.mime,
         sizeBytes: content.length,
         sha256: createHash('sha256').update(content).digest('hex'),
+        indicatorId: null,
         storageKey,
       });
     } catch (err) {
@@ -82,6 +84,28 @@ export class EvidenceService {
     const data = await this.deps.storage.read(record.storageKey);
     if (!data) throw HttpError.notFound('File not found');
     return { record, data };
+  }
+
+  /** Links a file to one of the project's mapped indicators, or unlinks it with null. */
+  async linkIndicator(
+    actor: UserRecord,
+    projectId: string,
+    evidenceId: string,
+    indicatorId: string | null,
+  ): Promise<EvidenceDto> {
+    const project = await this.project(actor, projectId);
+    this.assertEditable(project);
+    const record = await this.evidence(actor, projectId, evidenceId);
+    if (indicatorId !== null && !project.indicatorIds.includes(indicatorId)) {
+      throw new HttpError(
+        400,
+        'INDICATOR_NOT_MAPPED',
+        'Map this indicator to the project before linking evidence to it.',
+      );
+    }
+    const updated = await this.deps.repos.evidence.setIndicator(record.id, indicatorId);
+    if (!updated) throw HttpError.notFound('Evidence not found');
+    return toDto(updated);
   }
 
   async remove(

@@ -1,13 +1,19 @@
 import { Container } from '@impactalign/ui';
-import { getSection } from '@/lib/section-content';
+import { getSection, type SectionContent } from '@/lib/section-content';
 import { topicHref } from '@/lib/topics';
 import { ItemGrid } from './item-grid';
 import { PageHero } from './page-hero';
 import { CtaBanner } from './cta-banner';
 
 /** Public section page: hero + the topics the section covers. Shows a placeholder note until the section is published. */
-export function SectionPage({ slug }: { readonly slug: string }) {
-  const section = getSection(slug);
+export function SectionPage({
+  slug,
+  content,
+}: {
+  readonly slug: string;
+  readonly content?: SectionContent;
+}) {
+  const section = content ?? getSection(slug);
   return (
     <>
       <PageHero

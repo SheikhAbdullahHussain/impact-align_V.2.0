@@ -1,8 +1,8 @@
-import { LegalPlaceholder } from '@/components/marketing/legal-placeholder';
+import { LegalPage } from '@/components/marketing/legal-page';
 import { legalMetadata } from '@/lib/legal';
 
 export const metadata = legalMetadata('acceptable-use');
 
 export default function Page() {
-  return <LegalPlaceholder slug="acceptable-use" />;
+  return <LegalPage slug="acceptable-use" />;
 }

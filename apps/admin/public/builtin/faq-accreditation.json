@@ -1,0 +1,451 @@
+{
+  "groups": [
+    {
+      "id": "general",
+      "title": "General Questions",
+      "items": [
+        {
+          "number": 1,
+          "question": "What is ImpactAlign SDG Accreditation?",
+          "answer": [
+            "ImpactAlign SDG Accreditation is a structured evidence-based process that assesses how a project, research work, startup, institutional initiative, organizational report, or other eligible submission aligns with relevant Sustainable Development Goals (SDGs), targets, indicators, and measurable outcomes."
+          ]
+        },
+        {
+          "number": 2,
+          "question": "What is the purpose of ImpactAlign SDG Accreditation?",
+          "answer": [
+            "The purpose is to help applicants move from activities to evidence, from evidence to impact, and from impact to recognition by documenting, assessing, validating, and communicating their contribution to sustainable development."
+          ]
+        },
+        {
+          "number": 3,
+          "question": "Who can apply for accreditation?",
+          "answer": [
+            "Accreditation may be available to Individuals, Institutes, Organizations, and Corporations, subject to the applicable eligibility and evidence requirements."
+          ]
+        },
+        {
+          "number": 4,
+          "question": "What types of work can be submitted?",
+          "answer": [
+            "Eligible submissions may include:",
+            [
+              "Research Manuscripts",
+              "Research Proposals",
+              "Theses & Dissertations",
+              "Project Proposals",
+              "Startups",
+              "Institutional Reports",
+              "Organizational Reports",
+              "SDG-related Projects and Initiatives",
+              "Other evidence-based work accepted under the applicable accreditation category"
+            ]
+          ]
+        },
+        {
+          "number": 5,
+          "question": "Is ImpactAlign SDG Accreditation the same as university or professional accreditation?",
+          "answer": [
+            "No. ImpactAlign SDG Accreditation is specifically designed to assess SDG alignment, evidence, outcomes, impact, and measurable contribution. It should not be presented as a substitute for statutory, institutional, professional, or programme accreditation granted by a legally authorized accreditation body."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sdg-alignment",
+      "title": "SDG Alignment",
+      "items": [
+        {
+          "number": 6,
+          "question": "How does ImpactAlign identify the relevant SDGs?",
+          "answer": [
+            "The assessment identifies the SDGs that are substantively connected to the submitted work. Applicants may indicate relevant SDGs, while the assessment process examines whether the claimed alignment is supported by evidence."
+          ]
+        },
+        {
+          "number": 7,
+          "question": "Are SDG Targets and Indicators included in the assessment?",
+          "answer": [
+            "Yes. Where applicable, the assessment goes beyond simply naming an SDG and considers the relevant Goal → Target → Indicator → Evidence → Outcome → Impact relationship."
+          ]
+        },
+        {
+          "number": 8,
+          "question": "Can one submission address more than one SDG?",
+          "answer": [
+            "Yes. A submission may contribute to multiple SDGs. However, each claimed SDG should have a meaningful and evidence-supported connection with the work."
+          ]
+        },
+        {
+          "number": 9,
+          "question": "Can I apply if my work addresses only one SDG?",
+          "answer": [
+            "Yes. A submission does not need to address all 17 SDGs. The assessment focuses on the relevance and evidence of the claimed alignment, rather than the number of SDGs selected."
+          ]
+        },
+        {
+          "number": 10,
+          "question": "What if I am unsure which SDG applies to my work?",
+          "answer": [
+            "ImpactAlign may assist in identifying potentially relevant SDGs, targets, and indicators through its assessment methodology and, where available, AI-assisted mapping. Final alignment should be supported by appropriate evidence and reviewer validation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "application-requirements",
+      "title": "Application & Requirements",
+      "items": [
+        {
+          "number": 11,
+          "question": "What information is required to start an accreditation application?",
+          "answer": [
+            "Applicants will generally need to provide:",
+            [
+              "Applicant/account information",
+              "Type of applicant",
+              "Submission category",
+              "Title of the work",
+              "Abstract or executive summary",
+              "Relevant SDG(s)",
+              "Keywords",
+              "Supporting document(s)",
+              "Evidence of outputs, outcomes, or impact where applicable",
+              "Any additional information required for the selected accreditation category"
+            ]
+          ]
+        },
+        {
+          "number": 12,
+          "question": "What kind of evidence is required?",
+          "answer": [
+            "Evidence may include research findings, datasets, publications, reports, photographs, project records, institutional documents, implementation records, stakeholder evidence, measurable outputs and outcomes, monitoring data, or other credible supporting documentation."
+          ]
+        },
+        {
+          "number": 13,
+          "question": "Does the submission have to be a completed project?",
+          "answer": [
+            "Not necessarily. Some accreditation categories may accept proposals or works at different stages. However, the type and strength of accreditation evidence will depend on the nature and maturity of the submission."
+          ]
+        },
+        {
+          "number": 14,
+          "question": "Can a research proposal be accredited?",
+          "answer": [
+            "A research proposal may be eligible for an appropriate SDG alignment or prospective-impact assessment, provided that it demonstrates a credible relationship between the proposed research, SDG targets, indicators, expected outputs, outcomes, and potential impact."
+          ]
+        },
+        {
+          "number": 15,
+          "question": "Can a thesis or dissertation be submitted?",
+          "answer": [
+            "Yes, where the relevant accreditation category is available. The assessment can examine the research problem, methodology, findings, SDG alignment, evidence, outcomes, and potential or demonstrated impact."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assessment-process",
+      "title": "Assessment Process",
+      "items": [
+        {
+          "number": 16,
+          "question": "What happens after I submit my application?",
+          "answer": [
+            "The general process is:",
+            "Submit → Screen → Diagnose → Align → Assess → Validate → Decision → Report/Certificate → Verify",
+            "Applicants can track the status of their submission through their dashboard."
+          ]
+        },
+        {
+          "number": 17,
+          "question": "What does “Diagnose” mean?",
+          "answer": [
+            "Diagnosis identifies the current level of SDG relevance, evidence availability, measurable outcomes, and potential impact within the submitted work."
+          ]
+        },
+        {
+          "number": 18,
+          "question": "What does “Align” mean?",
+          "answer": [
+            "Alignment connects the work with relevant SDGs, targets, indicators, evidence, outcomes, and impact pathways."
+          ]
+        },
+        {
+          "number": 19,
+          "question": "What does “Measure” mean?",
+          "answer": [
+            "Measurement examines available quantitative and qualitative evidence against relevant assessment criteria and indicators."
+          ]
+        },
+        {
+          "number": 20,
+          "question": "What does “Validate” mean?",
+          "answer": [
+            "Validation involves reviewing the submitted claims and evidence to determine whether the stated SDG alignment and impact are adequately supported."
+          ]
+        },
+        {
+          "number": 21,
+          "question": "Who assesses the submission?",
+          "answer": [
+            "Assessment may involve a combination of structured criteria, technology-assisted analysis, and qualified human review, depending on the accreditation category and methodology."
+          ]
+        },
+        {
+          "number": 22,
+          "question": "Is the assessment entirely conducted by AI?",
+          "answer": [
+            "No. AI may support activities such as document analysis, keyword identification, SDG mapping, evidence organization, and preliminary assessment. Human review and validation remain important for substantive accreditation decisions."
+          ]
+        },
+        {
+          "number": 23,
+          "question": "Can the applicant challenge or clarify an assessment?",
+          "answer": [
+            "Where applicable, applicants may be provided an opportunity to respond to clarification requests, provide additional evidence, or follow the designated review or appeal procedure."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai-evidence",
+      "title": "AI & Evidence",
+      "items": [
+        {
+          "number": 24,
+          "question": "How does ImpactAlign use AI?",
+          "answer": [
+            "AI may assist with:",
+            [
+              "SDG and keyword mapping",
+              "Document analysis",
+              "Evidence categorization",
+              "Indicator identification",
+              "Impact-area identification",
+              "Preliminary consistency checks",
+              "Dashboard insights"
+            ],
+            "AI is intended to support assessment, not replace evidence or responsible human judgment."
+          ]
+        },
+        {
+          "number": 25,
+          "question": "Can AI-generated content be used as evidence?",
+          "answer": [
+            "AI-generated text by itself should not normally be treated as sufficient evidence of real-world impact. Accreditation should be supported by verifiable evidence and credible documentation."
+          ]
+        },
+        {
+          "number": 26,
+          "question": "How does ImpactAlign address AI ethics?",
+          "answer": [
+            "The system should emphasize transparency, human oversight, responsible data handling, traceability, avoidance of unsupported claims, and appropriate disclosure of AI-assisted processes."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "accreditation-decision",
+      "title": "Accreditation Decision",
+      "items": [
+        {
+          "number": 27,
+          "question": "What are the possible outcomes of an application?",
+          "answer": [
+            "Depending on the accreditation scheme, an application may receive a status such as:",
+            [
+              "Accredited",
+              "Accredited with Conditions / Improvement Requirements",
+              "Pending Further Evidence",
+              "Not Accredited"
+            ],
+            "The applicable decision categories will be defined in the relevant accreditation manual."
+          ]
+        },
+        {
+          "number": 28,
+          "question": "Does submission automatically guarantee accreditation?",
+          "answer": [
+            "No. Submission only begins the assessment process. Accreditation depends on satisfying the applicable requirements and providing sufficient evidence."
+          ]
+        },
+        {
+          "number": 29,
+          "question": "What happens if my submission does not meet the requirements?",
+          "answer": [
+            "The applicant may receive an assessment report identifying areas requiring clarification, additional evidence, or improvement. Where permitted, the applicant may revise and resubmit the work."
+          ]
+        },
+        {
+          "number": 30,
+          "question": "Will I receive an assessment report?",
+          "answer": [
+            "Yes, an assessment report should provide structured information about the submission's SDG alignment, evidence, indicators, outcomes, impact areas, and areas for improvement, subject to the selected accreditation package."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "certificate-verification",
+      "title": "Certificate & Verification",
+      "items": [
+        {
+          "number": 31,
+          "question": "What do I receive after successful accreditation?",
+          "answer": [
+            "Depending on the accreditation category, successful applicants may receive:",
+            [
+              "ImpactAlign SDG Accreditation Certificate",
+              "Accreditation/assessment report",
+              "SDG alignment profile",
+              "Applicable digital verification information",
+              "Accreditation identification/reference number",
+              "Dashboard record"
+            ]
+          ]
+        },
+        {
+          "number": 32,
+          "question": "Can an accreditation certificate be verified online?",
+          "answer": [
+            "Yes, where online verification is enabled. A verification system can allow stakeholders to confirm the authenticity and status of an accreditation using the relevant certificate/reference ID or verification mechanism."
+          ]
+        },
+        {
+          "number": 33,
+          "question": "Can I display the ImpactAlign SDG accreditation mark?",
+          "answer": [
+            "Accredited applicants may be permitted to display the applicable ImpactAlign SDG accreditation mark according to the brand, logo, and certification-use guidelines."
+          ]
+        },
+        {
+          "number": 34,
+          "question": "Does accreditation mean that ImpactAlign guarantees the claimed social or environmental impact?",
+          "answer": [
+            "No. Accreditation confirms that the submission has been assessed against the applicable ImpactAlign criteria and evidence requirements. It should not be interpreted as a guarantee of future impact or as an independent guarantee of every claim made by the applicant."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "time-fees-subscription",
+      "title": "Time, Fees & Subscription",
+      "items": [
+        {
+          "number": 35,
+          "question": "How long does accreditation take?",
+          "answer": [
+            "Processing time depends on the submission type, completeness of documentation, complexity of assessment, evidence requirements, and review process. The applicable estimated timeline should be displayed during the application process."
+          ]
+        },
+        {
+          "number": 36,
+          "question": "Is there an accreditation fee?",
+          "answer": [
+            "Fees may vary according to the applicant type, submission category, assessment scope, and selected service/package. The applicable fee should be shown before payment."
+          ]
+        },
+        {
+          "number": 37,
+          "question": "Is Membership the same as Accreditation?",
+          "answer": [
+            "No.",
+            "Membership provides access to the ImpactAlign community, resources, information, and applicable member benefits.",
+            "Accreditation is a formal assessment process for a specific submission against defined SDG alignment and impact criteria."
+          ]
+        },
+        {
+          "number": 38,
+          "question": "Is Subscription the same as Accreditation?",
+          "answer": [
+            "No. Subscription generally provides access to defined services, submission capacity, tools, or platform features. Accreditation is the assessment and recognition process applied to an eligible submission."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "renewal-improvement",
+      "title": "Renewal & Continuous Improvement",
+      "items": [
+        {
+          "number": 39,
+          "question": "Does accreditation expire?",
+          "answer": [
+            "The validity period depends on the applicable accreditation scheme. Where accreditation has a defined validity period, the certificate will indicate the relevant dates and renewal requirements."
+          ]
+        },
+        {
+          "number": 40,
+          "question": "Can an accredited work be reassessed?",
+          "answer": [
+            "Yes. Reassessment may be appropriate when significant new evidence, outcomes, impact data, or improvements become available."
+          ]
+        },
+        {
+          "number": 41,
+          "question": "Can I improve my accreditation after receiving the assessment?",
+          "answer": [
+            "Yes. ImpactAlign is designed not only to assess existing performance but also to identify evidence gaps, alignment opportunities, measurement needs, and areas for continuous improvement."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "confidentiality-data",
+      "title": "Confidentiality & Data",
+      "items": [
+        {
+          "number": 42,
+          "question": "How is my submitted information handled?",
+          "answer": [
+            "Submitted information should be handled according to ImpactAlign's applicable privacy policy, data protection procedures, confidentiality provisions, and terms of service."
+          ]
+        },
+        {
+          "number": 43,
+          "question": "Will my research or project be publicly displayed?",
+          "answer": [
+            "Not necessarily. Public visibility should depend on the applicant's consent, the applicable service terms, and the selected accreditation/publication options."
+          ]
+        },
+        {
+          "number": 44,
+          "question": "Can confidential or unpublished research be submitted?",
+          "answer": [
+            "Potentially, subject to the applicable confidentiality and evidence requirements. Applicants should avoid submitting information that cannot legally or appropriately be shared with the assessment platform or reviewers."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verification-integrity",
+      "title": "Verification & Integrity",
+      "items": [
+        {
+          "number": 45,
+          "question": "What happens if submitted evidence is found to be inaccurate?",
+          "answer": [
+            "ImpactAlign may request clarification or additional evidence and may take action under its accreditation rules if material information is found to be inaccurate, misleading, fabricated, or improperly represented."
+          ]
+        },
+        {
+          "number": 46,
+          "question": "Can an accreditation be suspended or withdrawn?",
+          "answer": [
+            "Where the accreditation framework permits it, an accreditation may be subject to review, suspension, or withdrawal if significant issues arise, including material misrepresentation or failure to meet continuing requirements."
+          ]
+        },
+        {
+          "number": 47,
+          "question": "Can someone verify an organization's accreditation?",
+          "answer": [
+            "Yes, where the verification service is available. Verification should allow stakeholders to check the accreditation reference, status, applicable scope, and validity."
+          ]
+        }
+      ]
+    }
+  ]
+}

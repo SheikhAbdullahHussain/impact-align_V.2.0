@@ -8,6 +8,7 @@ const evidenceSchema = new Schema(
     mimeType: { type: String, required: true, maxlength: 120 },
     sizeBytes: { type: Number, required: true, min: 1 },
     sha256: { type: String, required: true, maxlength: 64 },
+    indicatorId: { type: Schema.Types.ObjectId, ref: 'SDGIndicator', default: null, index: true },
     /** Random name of the stored file. Never exposed to clients. */
     storageKey: { type: String, required: true, unique: true },
     deletedAt: { type: Date, default: null },
@@ -16,4 +17,7 @@ const evidenceSchema = new Schema(
 );
 
 export type EvidenceDocument = InferSchemaType<typeof evidenceSchema>;
-export const Evidence: Model<EvidenceDocument> = model<EvidenceDocument>('Evidence', evidenceSchema);
+export const Evidence: Model<EvidenceDocument> = model<EvidenceDocument>(
+  'Evidence',
+  evidenceSchema,
+);

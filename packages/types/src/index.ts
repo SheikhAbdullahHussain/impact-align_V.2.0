@@ -5,3 +5,6 @@ export * from './sdg';
 export * from './project';
 export * from './evidence';
 export * from './assessment';
+export * from './report';
+export * from './certificate';
+export * from './content';

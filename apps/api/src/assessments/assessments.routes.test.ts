@@ -10,14 +10,19 @@ async function signIn(t: Ctx, address: string, roles?: PlatformRole[]) {
   await t.signUp(address);
   if (roles) t.repos.data.users.find((u) => u.email === address)!.roles = roles;
   const agent = request.agent(t.app);
-  const res = await agent.post('/api/v1/auth/login').send({ email: address, password: STRONG_PASSWORD });
+  const res = await agent
+    .post('/api/v1/auth/login')
+    .send({ email: address, password: STRONG_PASSWORD });
   return { agent, csrf: res.body.csrfToken as string };
 }
 type Person = Awaited<ReturnType<typeof signIn>>;
 
 const pdf = Buffer.from('%PDF-1.4 test content');
 const post = (p: Person, url: string, body: object = {}) =>
-  p.agent.post(url).set('X-CSRF-Token', p.csrf).send(body);
+  p.agent
+    .post(url)
+    .set('X-CSRF-Token', p.csrf)
+    .send(url.endsWith('/submit') ? { declaration: true, ...body } : body);
 const upload = (p: Person, id: string) =>
   p.agent
     .post(`/api/v1/projects/${id}/evidence`)
@@ -62,7 +67,9 @@ describe('assessment workflow', () => {
     expect(notAssigned.body.error.code).toBe('NOT_ASSIGNED');
 
     const detail = await root.agent.get(base);
-    const file = await root.agent.get(`${base}/evidence/${detail.body.assessment.evidence[0].id}/file`);
+    const file = await root.agent.get(
+      `${base}/evidence/${detail.body.assessment.evidence[0].id}/file`,
+    );
     expect(file.status).toBe(200);
     expect(file.headers['content-disposition']).toMatch(/^attachment;/);
 
@@ -74,7 +81,9 @@ describe('assessment workflow', () => {
     expect(feedback.body.notes[0].kind).toBe('CLARIFICATION_REQUEST');
 
     expect((await upload(ada, id)).status).toBe(201); // owner may edit again
-    expect((await post(ada, `/api/v1/projects/${id}/submit`)).body.project.status).toBe('SUBMITTED');
+    expect((await post(ada, `/api/v1/projects/${id}/submit`)).body.project.status).toBe(
+      'SUBMITTED',
+    );
 
     await post(root, `${base}/start`);
     const decided = await post(root, `${base}/decision`, VERIFY);
@@ -113,8 +122,13 @@ describe('assessment workflow', () => {
     const base = `/api/v1/assessments/${id}`;
     expect((await post(root, `${base}/decision`, VERIFY)).status).toBe(409); // not started yet
     await post(root, `${base}/start`);
-    expect((await post(root, `${base}/decision`, { decision: 'VERIFIED', rationale: 'short' })).status).toBe(400);
-    expect((await post(root, `${base}/decision`, { decision: 'MAYBE', rationale: VERIFY.rationale })).status).toBe(400);
+    expect(
+      (await post(root, `${base}/decision`, { decision: 'VERIFIED', rationale: 'short' })).status,
+    ).toBe(400);
+    expect(
+      (await post(root, `${base}/decision`, { decision: 'MAYBE', rationale: VERIFY.rationale }))
+        .status,
+    ).toBe(400);
   });
 
   it('blocks reviewing your own project', async () => {

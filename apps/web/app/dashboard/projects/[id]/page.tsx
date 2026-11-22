@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { EvidenceManager } from '@/components/dashboard/evidence-manager';
+import { SubmissionWizard } from '@/components/submission/submission-wizard';
 
-export const metadata: Metadata = { title: 'Project evidence' };
+export const metadata: Metadata = { title: 'Submission' };
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <EvidenceManager projectId={id} />;
+  return <SubmissionWizard projectId={id} />;
 }

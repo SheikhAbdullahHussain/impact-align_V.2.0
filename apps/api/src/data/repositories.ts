@@ -1,5 +1,21 @@
-// import type { AuditEvent, OrganizationRole, PlatformRole, ProjectStatus } from '@impactalign/types';
-import type { AuditEvent, OrganizationRole, PlatformRole, ProjectStatus, ReviewNoteKind } from '@impactalign/types';
+import type {
+  AuditEvent,
+  OrganizationRole,
+  PlatformRole,
+  ProjectStatus,
+  ReviewNoteKind,
+  SubmissionType,
+  ContentKind,
+  ContentStatus,
+} from '@impactalign/types';
+
+export class DuplicateCodeError extends Error {
+  constructor() {
+    super('Submission code already in use');
+    this.name = 'DuplicateCodeError';
+  }
+}
+
 export class DuplicateEmailError extends Error {
   constructor() {
     super('Email already registered');
@@ -141,6 +157,9 @@ export interface Repositories {
   projects: ProjectRepository;
   evidence: EvidenceRepository;
   reviewNotes: ReviewNoteRepository;
+  reports: ReportRepository;
+  certificates: CertificateRepository;
+  content: ContentRepository;
 }
 
 export interface SdgRecord {
@@ -185,6 +204,9 @@ export interface SdgRepository {
   findSDGByNumber(number: number): Promise<SdgRecord | null>;
   listTargetsBySdgId(sdgId: string): Promise<SdgTargetRecord[]>;
   listIndicatorsBySdgId(sdgId: string): Promise<SdgIndicatorRecord[]>;
+  /** Only the ids that exist (and are not soft-deleted) come back. */
+  findTargetsByIds(ids: string[]): Promise<SdgTargetRecord[]>;
+  findIndicatorsByIds(ids: string[]): Promise<SdgIndicatorRecord[]>;
 }
 
 export interface ProjectRecord {
@@ -195,11 +217,18 @@ export interface ProjectRecord {
   sdgNumbers: number[];
   status: ProjectStatus;
   submittedAt: Date | null;
+  submissionType: SubmissionType;
+  organizationId: string | null;
+  code: string | null;
+  targetIds: string[];
+  indicatorIds: string[];
   reviewerId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 export interface ProjectFields {
+  submissionType: SubmissionType;
+  organizationId: string | null;
   title: string;
   summary: string;
   sdgNumbers: number[];
@@ -210,24 +239,31 @@ export interface ProjectRepository {
   listByOwner(ownerId: string): Promise<ProjectRecord[]>;
   findById(id: string): Promise<ProjectRecord | null>;
   update(id: string, data: ProjectFields): Promise<ProjectRecord | null>;
+  /** Sets the code only while the project has none. Returns null if it already has one. Throws DuplicateCodeError if taken. */
+  assignCode(id: string, code: string): Promise<ProjectRecord | null>;
+  setAlignment(
+    id: string,
+    targetIds: string[],
+    indicatorIds: string[],
+  ): Promise<ProjectRecord | null>;
   softDelete(id: string): Promise<void>;
-    /** Atomic compare-and-set: moves the project only if it is currently in `from`. */
+  /** Atomic compare-and-set: moves the project only if it is currently in `from`. */
   transition(
     id: string,
     from: ProjectStatus,
     to: ProjectStatus,
     submittedAt: Date | null,
   ): Promise<ProjectRecord | null>;
-    
+
   /** Projects in any of the given statuses, oldest submission first (reviewer queue). */
-    listByStatus(statuses: ProjectStatus[]): Promise<ProjectRecord[]>;
-    /** Atomic review step: moves the project only if it is in `from`, and sets the reviewer. */
-    transitionReview(
-      id: string,
-      from: ProjectStatus,
-      to: ProjectStatus,
-      reviewerId: string | null,
-    ): Promise<ProjectRecord | null>;
+  listByStatus(statuses: ProjectStatus[]): Promise<ProjectRecord[]>;
+  /** Atomic review step: moves the project only if it is in `from`, and sets the reviewer. */
+  transitionReview(
+    id: string,
+    from: ProjectStatus,
+    to: ProjectStatus,
+    reviewerId: string | null,
+  ): Promise<ProjectRecord | null>;
 }
 export interface EvidenceRecord {
   id: string;
@@ -238,6 +274,7 @@ export interface EvidenceRecord {
   sizeBytes: number;
   sha256: string;
   storageKey: string;
+  indicatorId: string | null;
   createdAt: Date;
 }
 export type NewEvidence = Omit<EvidenceRecord, 'id' | 'createdAt'>;
@@ -246,6 +283,9 @@ export interface EvidenceRepository {
   /** Newest first. Soft-deleted rows are never returned. */
   listByProject(projectId: string): Promise<EvidenceRecord[]>;
   findById(id: string): Promise<EvidenceRecord | null>;
+  setIndicator(id: string, indicatorId: string | null): Promise<EvidenceRecord | null>;
+  /** Unlinks every file whose indicator is not in `keepIndicatorIds`. */
+  unlinkExcept(projectId: string, keepIndicatorIds: string[]): Promise<void>;
   softDelete(id: string): Promise<void>;
 }
 
@@ -261,4 +301,82 @@ export interface ReviewNoteRepository {
   create(data: Omit<ReviewNoteRecord, 'id' | 'createdAt'>): Promise<ReviewNoteRecord>;
   /** Oldest first. */
   listByProject(projectId: string): Promise<ReviewNoteRecord[]>;
+}
+
+export interface ReportRecord {
+  id: string;
+  projectId: string;
+  ownerId: string;
+  code: string;
+  title: string;
+  submissionType: SubmissionType;
+  sdgNumbers: number[];
+  targets: { code: string; title: string | null }[];
+  indicators: { code: string; title: string | null }[];
+  evidence: { fileName: string; sha256: string; sizeBytes: number; indicatorCode: string | null }[];
+  decision: 'VERIFIED' | 'REJECTED';
+  rationale: string;
+  decidedAt: Date;
+  reviewerId: string | null;
+  createdAt: Date;
+}
+export type NewReport = Omit<ReportRecord, 'id' | 'createdAt'>;
+export interface ReportRepository {
+  /** Idempotent: if the project already has a report, that one is returned unchanged. */
+  create(data: NewReport): Promise<ReportRecord>;
+  findByProject(projectId: string): Promise<ReportRecord | null>;
+  /** Newest first. */
+  listByOwner(ownerId: string): Promise<ReportRecord[]>;
+}
+
+export interface CertificateRecord {
+  id: string;
+  projectId: string;
+  ownerId: string;
+  certificateNumber: string;
+  code: string;
+  title: string;
+  submissionType: SubmissionType;
+  sdgNumbers: number[];
+  issuedAt: Date;
+  expiresAt: Date;
+  revokedAt: Date | null;
+  revokedReason: string | null;
+  revokedById: string | null;
+  createdAt: Date;
+}
+export type NewCertificate = Omit<
+  CertificateRecord,
+  'id' | 'createdAt' | 'revokedAt' | 'revokedReason' | 'revokedById'
+>;
+export interface CertificateRepository {
+  /** Idempotent: if the project already has a certificate, that one is returned unchanged. */
+  create(data: NewCertificate): Promise<CertificateRecord>;
+  findByProject(projectId: string): Promise<CertificateRecord | null>;
+  findByCode(code: string): Promise<CertificateRecord | null>;
+  /** Newest first. */
+  listByOwner(ownerId: string): Promise<CertificateRecord[]>;
+  /** Atomic: revokes only a certificate that is not revoked yet. Returns null otherwise. */
+  revoke(id: string, at: Date, reason: string, byId: string): Promise<CertificateRecord | null>;
+}
+
+export interface ContentRecord {
+  id: string;
+  kind: ContentKind;
+  key: string;
+  status: ContentStatus;
+  data: unknown;
+  publishedAt: Date | null;
+  updatedById: string | null;
+  updatedAt: Date;
+}
+export interface ContentRepository {
+  find(kind: ContentKind, key: string): Promise<ContentRecord | null>;
+  list(): Promise<ContentRecord[]>;
+  /** Creates the entry or replaces its status and data. */
+  upsert(
+    kind: ContentKind,
+    key: string,
+    input: { status: ContentStatus; data: unknown; publishedAt: Date | null; updatedById: string },
+  ): Promise<ContentRecord>;
 }
