@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
+import { getApp } from './serverless';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
@@ -87,4 +88,20 @@ export function createApp({ env, logger, healthService, services }: AppDependenc
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;
+}
+
+/**
+ * Entry point for Vercel (the platform looks for a default export in src/app.ts).
+ * The real app is built on first use, so importing this file in tests costs nothing.
+ */
+export default async function handler(req: Request, res: Response): Promise<void> {
+  try {
+    // const { getApp } = await import('./serverless');
+    const app = await getApp(createApp);
+    app(req, res);
+  } catch (error) {
+    // Env validation errors list variable names only, never values.
+    console.error('API failed to start:', error instanceof Error ? error.message : error);
+    res.status(500).json({ error: { code: 'STARTUP_FAILED', message: 'API failed to start' } });
+  }
 }
