@@ -1,4 +1,4 @@
-import PDFDocument from 'pdfkit';
+// import PDFDocument from 'pdfkit';
 import {
   SUBMISSION_TYPE_LABELS,
   type CertificateDto,
@@ -8,7 +8,12 @@ import {
 const day = (iso: string) => iso.slice(0, 10);
 
 /** Renders the certificate as a one-page A4 PDF. Deterministic: same input, same content. */
-export function renderCertificatePdf(cert: CertificateDto, verifyUrl: string): Promise<Buffer> {
+export async function renderCertificatePdf(
+  cert: CertificateDto,
+  verifyUrl: string,
+): Promise<Buffer> {
+  // Loaded on demand: pdfkit pulls in an ES-module-only dependency that must not break API startup.
+  const { default: PDFDocument } = await import('pdfkit');
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: 'A4',
