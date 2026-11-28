@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
-import { getApp } from './serverless';
+import { ensureMongoReady, getApp } from './serverless';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
@@ -98,6 +98,7 @@ export default async function handler(req: Request, res: Response): Promise<void
   try {
     // const { getApp } = await import('./serverless');
     const app = await getApp(createApp);
+    await ensureMongoReady();
     app(req, res);
   } catch (error) {
     // Env validation errors list variable names only, never values.
